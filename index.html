@@ -622,6 +622,33 @@ var UI_TRANSLATIONS = {
     historyEmpty: "No hay historial de cambios.",
     historyVersion: "VERSIÓN", historyNew: "NUEVO", historyLink: "ENLACE",
     historyChangelog: "CAMBIOS", historyNotice: "AVISO", historyRemoved: "ELIMINADO"
+  },
+  de: {
+    title: "Smart Review Versionsportal",
+    subtitle: "AI Smart Review Software-Verteilungszentrum",
+    sectionOverview: "🔍 Versionsübersicht — Schnellprüfung",
+    hintMain: "Weicht Ihre Version von der oben angezeigten ab?\nLaden Sie die neueste Version herunter.",
+    hintSub: "Klicken Sie auf die Download-Schaltfläche der Software, die aktualisiert werden muss.",
+    sectionDownload: "📦 Downloads",
+    btnDownload: "⬇ Download",
+    btnCompare: "Meine Versionen vergleichen — Dateien hierher ziehen",
+    dropMain: "SW-Dateien hierher ziehen und ablegen",
+    dropSub: "Dateien oder Ordner ablegen — Namen werden automatisch abgeglichen",
+    dropHint: "Dateien werden NICHT hochgeladen. Nur Dateinamen werden im Browser gelesen.",
+    noteTitle: "📌 Hinweise",
+    note1: "Falls der Download nicht verfügbar ist, kontaktieren Sie das AES Team.",
+    note2: "AOIGUI Base Library muss sowohl auf Vision PC als auch auf Review PC installiert werden.",
+    note3: "Kontakt: AES Team",
+    compareNote: "Dateien werden NICHT hochgeladen — nur Dateinamen werden im Browser zum Vergleich gelesen.",
+    good: "Good", update: "Update", notFound: "Not Found",
+    goToDownload: "Zum Download", recompare: "Erneut vergleichen",
+    updatedLabel: "Letzte Aktualisierung:", managedBy: "AES Team | Jace.Ha",
+    detected: "Erkannte Dateien", close: "Schließen", closeResults: "Vergleichsergebnisse schließen",
+    upToDate: "Aktuell", updateNeeded: "Update erforderlich",
+    historyTitle: "📜 Änderungsverlauf",
+    historyEmpty: "Kein Änderungsverlauf vorhanden.",
+    historyVersion: "VERSION", historyNew: "NEU", historyLink: "LINK",
+    historyChangelog: "ÄNDERUNGEN", historyNotice: "HINWEIS", historyRemoved: "ENTFERNT"
   }
 };
 
@@ -695,6 +722,7 @@ function renderPortal() {
     '        <button class="lang-btn" data-lang="zh"  onclick="switchLang(\'zh\')">中文</button>',
     '        <button class="lang-btn" data-lang="ja"  onclick="switchLang(\'ja\')">日本語</button>',
     '        <button class="lang-btn" data-lang="es"  onclick="switchLang(\'es\')">Español</button>',
+    '        <button class="lang-btn" data-lang="de"  onclick="switchLang(\'de\')">Deutsch</button>',
     '      </div>',
     '      <div class="last-updated" id="lastUpdatedBlock">',
     '        Last Updated: <span id="lastUpdatedDate">' + esc(d.lastUpdated) + '</span><br>',
@@ -1324,7 +1352,8 @@ var BATCH_LABELS = {
   ko: { selectAll: '전체 선택', selected: '선택됨', batchDl: '일괄 다운로드' },
   zh: { selectAll: '全选', selected: '已选', batchDl: '批量下载' },
   ja: { selectAll: '全選択', selected: '選択済み', batchDl: '一括ダウンロード' },
-  es: { selectAll: 'Seleccionar Todo', selected: 'seleccionados', batchDl: 'Descarga Masiva' }
+  es: { selectAll: 'Seleccionar Todo', selected: 'seleccionados', batchDl: 'Descarga Masiva' },
+  de: { selectAll: 'Alle auswählen', selected: 'ausgewählt', batchDl: 'Sammel-Download' }
 };
 
 function toggleSelectAll(masterCb) {
@@ -1368,7 +1397,8 @@ var APP_UPDATE_LABELS = {
   ko: { title: '새 버전 사용 가능', msg: '새 버전(v{ver})이 다운로드되었습니다.\n재시작하시겠습니까?', restart: '지금 재시작', later: '나중에' },
   zh: { title: '新版本可用', msg: '新版本(v{ver})已下载完成。\n是否重启？', restart: '立即重启', later: '稍后' },
   ja: { title: '新バージョン利用可能', msg: '新バージョン(v{ver})がダウンロードされました。\n再起動しますか？', restart: '今すぐ再起動', later: '後で' },
-  es: { title: 'Nueva Versión Disponible', msg: 'Se ha descargado una nueva versión (v{ver}).\n¿Desea reiniciar?', restart: 'Reiniciar Ahora', later: 'Más Tarde' }
+  es: { title: 'Nueva Versión Disponible', msg: 'Se ha descargado una nueva versión (v{ver}).\n¿Desea reiniciar?', restart: 'Reiniciar Ahora', later: 'Más Tarde' },
+  de: { title: 'Neue Version verfügbar', msg: 'Eine neue Version (v{ver}) wurde heruntergeladen.\nMöchten Sie neu starten?', restart: 'Jetzt neu starten', later: 'Später' }
 };
 
 function showAppUpdatePopup(newVersion) {
@@ -1444,6 +1474,13 @@ var UPDATE_LABELS = {
     offlineTitle: 'Sin Conexión a Internet',
     offlineMsg: 'Verifique su conexión a Internet.\nLa información más reciente no se refleja.',
     close: 'Aceptar'
+  },
+  de: {
+    title: 'Update erkannt',
+    msg: 'Es gibt aktualisierte Elemente.\nBitte vergleichen Sie Ihre Versionen.',
+    offlineTitle: 'Keine Internetverbindung',
+    offlineMsg: 'Bitte überprüfen Sie Ihre Internetverbindung.\nDie neuesten Informationen werden nicht angezeigt.',
+    close: 'OK'
   }
 };
 
