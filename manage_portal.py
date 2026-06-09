@@ -9,8 +9,10 @@ Usage:
 """
 import sys
 import io
-sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
-sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace')
+if sys.stdout is not None:
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
+if sys.stderr is not None:
+    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace')
 
 import re
 import os
@@ -65,17 +67,23 @@ def read_portal_data(html_path: str) -> tuple[dict, str]:
     with open(html_path, encoding="utf-8") as f:
         html = f.read()
 
-    # Locate the exact block: from "var PORTAL_DATA = {" to the first "};" that
-    # closes it (at column-0 indentation, i.e. "};" on its own line).
+    # Locate the PORTAL_DATA block. Supports both formats:
+    #   var PORTAL_DATA = { ... };
+    #   var PORTAL_DATA = window.__PORTAL_DATA || { ... };
     start_marker = "var PORTAL_DATA = {"
     start_idx = html.find(start_marker)
     if start_idx == -1:
-        raise ValueError("PORTAL_DATA block not found in HTML.")
+        alt_marker = "var PORTAL_DATA = window.__PORTAL_DATA || {"
+        start_idx = html.find(alt_marker)
+        if start_idx == -1:
+            raise ValueError("PORTAL_DATA block not found in HTML.")
+        start_marker = alt_marker
 
     # Walk forward counting braces to find the matching closing brace.
     brace_count = 0
     end_idx = -1
-    i = start_idx + len("var PORTAL_DATA = ")  # points to the opening '{'
+    obj_start = start_idx + len(start_marker) - 1  # points to the opening '{'
+    i = obj_start
     while i < len(html):
         ch = html[i]
         if ch == '{':
@@ -95,7 +103,7 @@ def read_portal_data(html_path: str) -> tuple[dict, str]:
     if not after.startswith(";"):
         raise ValueError("Expected ';' after closing '}' of PORTAL_DATA.")
 
-    js_object = html[start_idx + len("var PORTAL_DATA = "):end_idx + 1]
+    js_object = html[obj_start:end_idx + 1]
 
     data = _js_object_to_dict(js_object)
     return data, html
@@ -105,10 +113,11 @@ def _js_object_to_dict(js_text: str) -> dict:
     """
     Convert a JavaScript object literal to a Python dict.
 
-    Uses a character-by-character approach that skips string contents
-    to safely handle URLs and special characters inside string values.
+    Extracts string literals into placeholders first, then quotes bare keys,
+    then restores strings. This prevents regex from corrupting URLs/values.
     """
     text = js_text
+    strings = []
     result = []
     i = 0
     while i < len(text):
@@ -122,7 +131,8 @@ def _js_object_to_dict(js_text: str) -> dict:
                 if text[j] == '"':
                     break
                 j += 1
-            result.append(text[i:j + 1])
+            strings.append(text[i:j + 1])
+            result.append(f'"__STRPH{len(strings) - 1}__"')
             i = j + 1
             continue
         if c == "'":
@@ -134,7 +144,8 @@ def _js_object_to_dict(js_text: str) -> dict:
                 if text[j] == "'":
                     break
                 j += 1
-            result.append('"' + text[i + 1:j].replace('"', '\\"') + '"')
+            strings.append('"' + text[i + 1:j].replace('"', '\\"') + '"')
+            result.append(f'"__STRPH{len(strings) - 1}__"')
             i = j + 1
             continue
         if c == '/' and i + 1 < len(text) and text[i + 1] == '/':
@@ -147,6 +158,9 @@ def _js_object_to_dict(js_text: str) -> dict:
     text = ''.join(result)
     text = re.sub(r'(?<!["\w])(\b[A-Za-z_$][A-Za-z0-9_$]*)\s*:', r'"\1":', text)
     text = re.sub(r',\s*([\]}])', r'\1', text)
+
+    for idx, s in enumerate(strings):
+        text = text.replace(f'"__STRPH{idx}__"', s)
 
     try:
         return json.loads(text, strict=False)
@@ -216,12 +230,17 @@ def write_portal_data(html_path: str, html: str, data: dict) -> None:
     start_marker = "var PORTAL_DATA = {"
     start_idx = html.find(start_marker)
     if start_idx == -1:
-        raise ValueError("PORTAL_DATA block not found when writing.")
+        alt_marker = "var PORTAL_DATA = window.__PORTAL_DATA || {"
+        start_idx = html.find(alt_marker)
+        if start_idx == -1:
+            raise ValueError("PORTAL_DATA block not found when writing.")
+        start_marker = alt_marker
 
     # Find end (same brace-counting logic)
     brace_count = 0
     end_idx = -1
-    i = start_idx + len("var PORTAL_DATA = ")
+    obj_start = start_idx + len(start_marker) - 1
+    i = obj_start
     while i < len(html):
         ch = html[i]
         if ch == '{':
@@ -239,8 +258,11 @@ def write_portal_data(html_path: str, html: str, data: dict) -> None:
     # end_idx+1 should be ';'
     semicolon_idx = end_idx + 1
 
-    new_js = _dict_to_js_object(data)
-    new_block = f"var PORTAL_DATA = {new_js};"
+    data_for_html = {k: v for k, v in data.items() if k != "history"}
+    new_js = _dict_to_js_object(data_for_html)
+    # Preserve original prefix (e.g. "var PORTAL_DATA = window.__PORTAL_DATA || ")
+    prefix = html[start_idx:obj_start]
+    new_block = f"{prefix}{new_js};"
 
     updated_html = html[:start_idx] + new_block + html[semicolon_idx + 1:]
 
@@ -289,9 +311,11 @@ def extract_version_from_link(link: str) -> str | None:
         return cleaned if cleaned else None
 
     # Strategy 3: try the raw path segment even without recognised extension
-    # (e.g., SharePoint opaque paths where the segment looks like a base64 blob)
     if path_part:
         last_seg = unquote(path_part.split("/")[-1])
+        # Skip SharePoint-style opaque IDs (base64 blobs starting with IQ/EQ etc.)
+        if re.match(r'^[A-Za-z]{2}[A-Za-z0-9_-]{20,}$', last_seg):
+            return None
         # Only return if it looks like a real filename (has a dot or underscore)
         if ("." in last_seg or "_" in last_seg) and len(last_seg) > 4:
             cleaned = _EXT_PATTERN.sub("", last_seg)
@@ -317,9 +341,13 @@ def run_extract(data: dict) -> int:
 
         version = extract_version_from_link(link)
         if version:
-            sw["versionName"] = version
-            print(f"  ✅ {name}: {version}")
-            updated += 1
+            existing = sw.get("versionName", "")
+            if existing and existing == version:
+                print(f"  — {name}: 변경 없음 ({version})")
+            else:
+                sw["versionName"] = version
+                print(f"  ✅ {name}: {version}")
+                updated += 1
         else:
             print(f"  ⚠️  {name}: 버전명 추출 실패 (불투명 URL, 건너뜀)")
 
@@ -339,6 +367,8 @@ def translate_with_claude(text_ko: str, target_lang: str) -> str:
         "en": "English",
         "zh": "Simplified Chinese",
         "ja": "Japanese",
+        "es": "Spanish",
+        "de": "German",
     }
 
     client = anthropic.Anthropic()
@@ -399,7 +429,7 @@ def run_translate(data: dict) -> int:
 
     print("\n🌐 번역 중 (Claude API)...")
     total_calls = 0
-    langs = ["en", "zh", "ja"]
+    langs = ["en", "zh", "ja", "es", "de"]
 
     # ── Notice ────────────────────────────────────────────────────────────────
     notice_ko = data.get("notice_ko", "")
@@ -452,6 +482,68 @@ def run_translate(data: dict) -> int:
             print(f"  ✅ {name}: 번역 완료")
 
     return total_calls
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+#  Change detection & history
+# ─────────────────────────────────────────────────────────────────────────────
+
+def detect_changes(old_data: dict, new_data: dict) -> list[dict]:
+    """Compare two PORTAL_DATA dicts and return a list of change objects."""
+    if not old_data:
+        return []
+
+    changes = []
+
+    if old_data.get("notice_ko", "") != new_data.get("notice_ko", ""):
+        changes.append({
+            "name": "공지사항",
+            "type": "notice",
+            "old": old_data.get("notice_ko", ""),
+            "new": new_data.get("notice_ko", ""),
+        })
+
+    old_sw = {sw["id"]: sw for sw in old_data.get("software", [])}
+    new_sw = {sw["id"]: sw for sw in new_data.get("software", [])}
+
+    for sw_id, nsw in new_sw.items():
+        osw = old_sw.get(sw_id)
+        if osw is None:
+            changes.append({"name": nsw["name"], "type": "new", "old": "", "new": nsw.get("versionName", "")})
+            continue
+        if nsw.get("versionName", "") != osw.get("versionName", ""):
+            changes.append({"name": nsw["name"], "type": "version",
+                            "old": osw.get("versionName", ""), "new": nsw.get("versionName", "")})
+        elif nsw.get("link", "") != osw.get("link", ""):
+            changes.append({"name": nsw["name"], "type": "link", "old": "", "new": ""})
+        elif nsw.get("changelog_ko", "") != osw.get("changelog_ko", ""):
+            changes.append({"name": nsw["name"], "type": "changelog",
+                            "old": osw.get("changelog_ko", ""), "new": nsw.get("changelog_ko", "")})
+
+    for sw_id in old_sw:
+        if sw_id not in new_sw:
+            changes.append({"name": old_sw[sw_id]["name"], "type": "removed", "old": "", "new": ""})
+
+    return changes
+
+
+def save_history(data: dict, changes: list[dict]) -> None:
+    """Append a history entry to data['history']. Caps at 30 entries."""
+    if not changes:
+        return
+
+    from datetime import datetime
+    now = datetime.now()
+
+    entry = {
+        "date": now.strftime("%Y-%m-%d"),
+        "timestamp": now.strftime("%Y-%m-%dT%H:%M:%S"),
+        "changes": changes,
+    }
+
+    history = data.get("history", [])
+    history.insert(0, entry)
+    data["history"] = history[:30]
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -602,6 +694,9 @@ def main() -> None:
         print(f"   소프트웨어 {len(data.get('software', []))}개 항목 포함")
         return
 
+    import copy
+    old_data = copy.deepcopy(data)
+
     do_extract = not args.translate_only
     do_translate = not args.extract_only
 
@@ -611,7 +706,38 @@ def main() -> None:
     if do_translate:
         run_translate(data)
 
-    # Write back
+    # Detect changes and record history
+    changes = detect_changes(old_data, data)
+    if changes:
+        print(f"\n📋 변경 감지: {len(changes)}건")
+        for c in changes:
+            if c["type"] == "version":
+                print(f"  🔄 {c['name']}: {c['old']} → {c['new']}")
+            elif c["type"] == "new":
+                print(f"  🆕 {c['name']}: 신규 추가")
+            elif c["type"] == "removed":
+                print(f"  🗑️  {c['name']}: 제거")
+            else:
+                print(f"  📝 {c['name']}: {c['type']} 변경")
+
+        # Load existing history from portal-data.json and merge
+        json_path = os.path.join(os.path.dirname(html_path), "portal-data.json")
+        if os.path.isfile(json_path):
+            with open(json_path, encoding="utf-8") as f:
+                existing = json.load(f)
+            data["history"] = existing.get("history", [])
+
+        save_history(data, changes)
+    else:
+        print("\n— 변경사항 없음")
+        # Preserve existing history
+        json_path = os.path.join(os.path.dirname(html_path), "portal-data.json")
+        if os.path.isfile(json_path):
+            with open(json_path, encoding="utf-8") as f:
+                existing = json.load(f)
+            data["history"] = existing.get("history", [])
+
+    # Write back (history stripped from HTML, kept in JSON)
     try:
         write_portal_data(html_path, html, data)
     except (ValueError, OSError) as exc:
