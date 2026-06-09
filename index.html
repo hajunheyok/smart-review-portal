@@ -1,0 +1,1112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smart Review Version Portal</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Segoe UI', -apple-system, sans-serif; background: #e8ecf1; color: #1e293b; min-height: 100vh; }
+
+  /* === HEADER === */
+  .header {
+    background: linear-gradient(135deg, #4a5a8a 0%, #5e4d7a 50%, #7a5a6a 100%);
+    padding: 36px 40px; position: relative; overflow: hidden;
+  }
+  .header::before {
+    content: ''; position: absolute; top: -50%; right: -10%; width: 500px; height: 500px;
+    background: radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 70%); border-radius: 50%;
+  }
+  .header-top { display: flex; align-items: center; justify-content: space-between; position: relative; z-index: 1; }
+  .logo-area { display: flex; align-items: center; gap: 16px; }
+  .logo-icon {
+    width: 52px; height: 52px; background: rgba(255,255,255,0.18);
+    backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 14px; display: flex; align-items: center; justify-content: center;
+    font-size: 24px; font-weight: bold; color: white;
+  }
+  .logo-text h1 { font-size: 26px; font-weight: 700; color: #fff; }
+  .logo-text p { font-size: 13px; color: rgba(255,255,255,0.75); margin-top: 2px; }
+  .header-right { display: flex; flex-direction: column; align-items: flex-end; gap: 10px; position: relative; z-index: 1; }
+  .last-updated { font-size: 12px; color: rgba(255,255,255,0.6); text-align: right; line-height: 1.6; }
+  .last-updated span { color: #fff; font-weight: 600; }
+  .lang-switcher { display: flex; gap: 4px; }
+  .lang-btn {
+    background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2);
+    color: rgba(255,255,255,0.8); padding: 5px 14px; border-radius: 20px;
+    font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.2s;
+  }
+  .lang-btn:hover { background: rgba(255,255,255,0.25); color: #fff; }
+  .lang-btn.active { background: rgba(255,255,255,0.92); border-color: rgba(255,255,255,0.95); color: #4a5a8a; font-weight: 700; }
+  .notice-bar {
+    background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 10px; padding: 12px 18px; margin: 20px 0 0;
+    font-size: 13px; color: rgba(255,255,255,0.95); position: relative; z-index: 1;
+  }
+
+  .container { max-width: 1200px; margin: 0 auto; padding: 32px 40px; }
+  .section-title { font-size: 14px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 16px; }
+
+  /* === OVERVIEW CARDS === */
+  .overview-section { margin-bottom: 20px; }
+  .overview-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+  .overview-card {
+    background: #fff; border-radius: 16px; overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.04);
+    border: 1px solid #dde3eb; transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .overview-card:hover { transform: translateY(-2px); box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+  .overview-card-header { padding: 14px 20px; font-weight: 700; font-size: 15px; display: flex; align-items: center; gap: 10px; }
+  .overview-card-header.vision { background: linear-gradient(135deg, #d8dff5, #e0daf0); color: #4a4a8a; border-bottom: 2px solid #9ba4d4; }
+  .overview-card-header.review { background: linear-gradient(135deg, #c8e8dc, #c4e4e0); color: #2a6a5a; border-bottom: 2px solid #6abfa5; }
+  .overview-card-header.tool { background: linear-gradient(135deg, #f0e0c8, #ece0c0); color: #8a6a2a; border-bottom: 2px solid #c4a460; }
+  .overview-card-body { padding: 4px 0; }
+  .overview-row { padding: 12px 20px; border-bottom: 1px solid #f1f5f9; transition: background 0.15s; }
+  .overview-row:last-child { border-bottom: none; }
+  .overview-row:hover { background: #f8f9fc; }
+  .overview-sw-name { font-size: 12px; color: #8a94a6; font-weight: 600; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .overview-version {
+    font-size: 12.5px; font-weight: 600; color: #334155; background: #f0f2f7;
+    padding: 5px 12px; border-radius: 8px; font-family: 'Consolas', 'Cascadia Code', monospace;
+    display: inline-block; word-break: break-all; line-height: 1.4; border: 1px solid #dde3eb;
+  }
+
+  /* === COMPARE HINT BOX === */
+  .compare-hint-box {
+    margin: 28px 0; padding: 18px 24px; background: linear-gradient(135deg, #4a5a8a, #5e4d7a);
+    border-radius: 12px; text-align: center; box-shadow: 0 4px 16px rgba(74,90,138,0.25);
+  }
+  .compare-hint-box .arrow-row { font-size: 24px; color: rgba(255,255,255,0.7); margin-bottom: 6px; animation: bounce 1.5s infinite; }
+  @keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(4px)} }
+  .compare-hint-box .hint-main { font-size: 17px; font-weight: 700; color: #fff; line-height: 1.5; }
+  .compare-hint-box .hint-sub { font-size: 13px; color: rgba(255,255,255,0.7); margin-top: 4px; }
+
+  /* === COMPARE BUTTON === */
+  .compare-btn-area { text-align: center; margin: 20px 0 28px; }
+  .compare-trigger {
+    background: #fff; border: 2px solid #4a5a8a; color: #4a5a8a;
+    padding: 12px 32px; border-radius: 10px; font-size: 15px; font-weight: 700;
+    cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; gap: 8px;
+    box-shadow: 0 2px 8px rgba(74,90,138,0.1);
+  }
+  .compare-trigger:hover { background: #4a5a8a; color: #fff; box-shadow: 0 4px 16px rgba(74,90,138,0.3); }
+
+  /* === COMPARE PANEL (hidden by default) === */
+  .compare-panel { display: none; margin-bottom: 28px; }
+  .compare-panel.open { display: block; }
+
+  .dropzone {
+    border: 3px dashed #b0b8cc; border-radius: 16px; padding: 40px 32px;
+    text-align: center; background: #f8f9fc; transition: all 0.3s; cursor: pointer;
+  }
+  .dropzone.dragover { border-color: #4a5a8a; background: #eef0f7; transform: scale(1.005); }
+  .dropzone-icon { font-size: 42px; margin-bottom: 10px; }
+  .dropzone-main { font-size: 16px; font-weight: 600; color: #4a5a8a; margin-bottom: 4px; }
+  .dropzone-sub { font-size: 13px; color: #8a94a6; }
+  .dropzone-hint { font-size: 11px; color: #b0b8cc; margin-top: 10px; }
+  .compare-close {
+    display: block; margin: 12px auto 0; background: none; border: none;
+    color: #8a94a6; font-size: 13px; cursor: pointer; padding: 4px 12px;
+  }
+  .compare-close:hover { color: #4a5a8a; }
+
+  /* === COMPARE RESULTS === */
+  .compare-results { display: none; margin-bottom: 28px; }
+  .compare-results.open { display: block; }
+
+  .detected-files {
+    background: #fff; border: 1px solid #dde3eb; border-radius: 12px;
+    padding: 14px 20px; margin-bottom: 14px;
+  }
+  .detected-title { font-size: 12px; font-weight: 600; color: #8a94a6; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .detected-list { display: flex; flex-wrap: wrap; gap: 5px; }
+  .detected-chip {
+    font-size: 11px; padding: 3px 10px; border-radius: 6px;
+    font-family: 'Consolas', monospace; background: #f0f2f7; border: 1px solid #dde3eb; color: #4a5a8a;
+  }
+
+  .results-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+  .results-summary { display: flex; gap: 12px; }
+  .summary-badge { font-size: 12px; font-weight: 600; padding: 5px 14px; border-radius: 20px; }
+  .summary-badge.match { background: #e8f5ef; color: #16a34a; }
+  .summary-badge.diff { background: #fce8e8; color: #dc2626; }
+  .summary-badge.notfound { background: #f0f2f7; color: #8a94a6; }
+  .reset-btn {
+    background: #fff; border: 1px solid #dde3eb; color: #64748b;
+    padding: 6px 16px; border-radius: 8px; font-size: 12px; font-weight: 500; cursor: pointer;
+  }
+  .reset-btn:hover { border-color: #4a5a8a; color: #4a5a8a; }
+
+  .result-grid { display: flex; flex-direction: column; gap: 8px; }
+  .result-row {
+    background: #fff; border-radius: 12px; padding: 14px 20px;
+    display: flex; align-items: center; gap: 14px; border: 2px solid transparent;
+  }
+  .result-row.match { border-color: #86efac; background: #f0fdf4; }
+  .result-row.diff { border-color: #fca5a5; background: #fef2f2; }
+  .result-row.notfound { border-color: #dde3eb; background: #f8f9fc; }
+  .result-status { width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+  .result-row.match .result-status { background: #dcfce7; }
+  .result-row.diff .result-status { background: #fee2e2; }
+  .result-row.notfound .result-status { background: #f0f2f7; }
+  .result-info { flex: 1; min-width: 0; }
+  .result-sw-name { font-size: 14px; font-weight: 700; color: #1e293b; margin-bottom: 4px; }
+  .result-versions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .result-ver-label { font-size: 10px; color: #8a94a6; font-weight: 600; text-transform: uppercase; }
+  .result-ver {
+    font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 6px;
+    font-family: 'Consolas', monospace; word-break: break-all;
+  }
+  .result-ver.yours { background: #f0f2f7; color: #4a5a8a; border: 1px solid #dde3eb; }
+  .result-ver.latest { background: #eef0f7; color: #4a4a8a; border: 1px solid #c8cede; }
+  .result-ver.latest.is-diff { background: #fee2e2; color: #dc2626; border-color: #fca5a5; }
+  .result-ver.latest.is-match { background: #dcfce7; color: #16a34a; border-color: #86efac; }
+  .result-arrow { color: #b0b8cc; font-size: 14px; }
+  .result-action { flex-shrink: 0; }
+  .dl-btn-sm {
+    background: linear-gradient(135deg, #dc2626, #ef4444); color: white;
+    border: none; padding: 7px 16px; border-radius: 8px; font-size: 12px;
+    font-weight: 600; cursor: pointer; text-decoration: none; display: inline-flex;
+    align-items: center; gap: 5px; box-shadow: 0 2px 6px rgba(220,38,38,0.2);
+  }
+  .dl-btn-sm:hover { transform: scale(1.04); }
+  .match-label { font-size: 12px; font-weight: 600; color: #16a34a; }
+  .compare-note { font-size: 11px; color: #8a94a6; margin-top: 12px; text-align: center; }
+
+  .divider { border: none; border-top: 2px dashed #d4d9e2; margin: 4px 0 32px; }
+
+  /* === DOWNLOAD CARDS === */
+  .sw-grid { display: flex; flex-direction: column; gap: 12px; }
+  .sw-card {
+    background: #fff; border: 1px solid #dde3eb; border-radius: 14px;
+    padding: 20px 24px; display: flex; align-items: center; justify-content: space-between;
+    transition: all 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  }
+  .sw-card:hover { border-color: #9ba4d4; transform: translateX(4px); box-shadow: 0 4px 16px rgba(74,90,138,0.1); }
+  .sw-info { display: flex; align-items: center; gap: 16px; flex: 1; min-width: 0; }
+  .sw-icon {
+    width: 46px; height: 46px; border-radius: 12px; display: flex; align-items: center;
+    justify-content: center; font-size: 22px; flex-shrink: 0;
+  }
+  .sw-icon.blue { background: linear-gradient(135deg, #d8dff5, #c8d0e8); }
+  .sw-icon.blue2 { background: linear-gradient(135deg, #ccd8f0, #bcc8e4); }
+  .sw-icon.green { background: linear-gradient(135deg, #c8e8dc, #b8dcd0); }
+  .sw-icon.purple { background: linear-gradient(135deg, #e0daf0, #d4cce8); }
+  .sw-icon.orange { background: linear-gradient(135deg, #f0e0c8, #e4d4bc); }
+  .sw-icon.cyan { background: linear-gradient(135deg, #c4e8f0, #b4dce8); }
+  .sw-icon.pink { background: linear-gradient(135deg, #f0d8e4, #e4ccd8); }
+  .sw-icon.yellow { background: linear-gradient(135deg, #f0ecc8, #e4e0bc); }
+  .sw-icon.red { background: linear-gradient(135deg, #f0d4d4, #e4c8c8); }
+  .sw-text { min-width: 0; flex: 1; }
+  .sw-details h3 { font-size: 16px; font-weight: 700; color: #1e293b; }
+  .sw-meta { display: flex; align-items: center; gap: 10px; margin-top: 5px; font-size: 13px; flex-wrap: wrap; }
+  .version-badge-long {
+    font-size: 11.5px; font-weight: 600; color: #4a4a8a; background: #eef0f7;
+    padding: 4px 12px; border-radius: 8px; font-family: 'Consolas', monospace;
+    border: 1px solid #c8cede; word-break: break-all;
+  }
+  .date { color: #8a94a6; font-size: 12px; }
+  .changelog { color: #64748b; margin-top: 6px; font-size: 13px; }
+  .tag { font-size: 11px; padding: 3px 10px; border-radius: 20px; font-weight: 600; }
+  .tag.vision { background: #eef0f7; color: #4a4a8a; }
+  .tag.review { background: #e8f5ef; color: #2a6a5a; }
+  .tag.tool { background: #f7f0e4; color: #8a6a2a; }
+  .tag.both { background: #f0edf7; color: #6a4a8a; }
+  .download-btn {
+    background: linear-gradient(135deg, #4a5a8a, #5e4d7a); color: white;
+    border: none; padding: 11px 26px; border-radius: 10px; font-size: 14px;
+    font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px;
+    transition: all 0.2s; text-decoration: none; flex-shrink: 0; white-space: nowrap;
+    box-shadow: 0 2px 8px rgba(74,90,138,0.25);
+  }
+  .download-btn:hover { transform: scale(1.04); box-shadow: 0 4px 16px rgba(74,90,138,0.35); }
+  .download-btn.disabled {
+    background: linear-gradient(135deg, #b0b8cc, #c4cad6); cursor: not-allowed;
+    box-shadow: none; opacity: 0.65; pointer-events: none;
+  }
+
+  .note-section {
+    background: #fff; border: 1px solid #dde3eb; border-radius: 14px;
+    padding: 20px 24px; margin-top: 32px; box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  }
+  .note-section h3 { font-size: 15px; color: #1e293b; margin-bottom: 12px; }
+  .note-section ul { list-style: none; padding: 0; }
+  .note-section li { color: #64748b; font-size: 13px; padding: 5px 0; padding-left: 16px; position: relative; }
+  .note-section li::before { content: "•"; color: #4a5a8a; position: absolute; left: 0; font-weight: bold; }
+  .footer { text-align: center; padding: 32px; color: #8a94a6; font-size: 12px; border-top: 1px solid #d4d9e2; margin-top: 40px; }
+</style>
+</head>
+<body>
+
+<script>
+// ╔══════════════════════════════════════════════════════════╗
+// ║  아래 데이터를 수정하세요. link와 changelog_ko만 수정하면 됩니다.  ║
+// ║  수정 후 manage_portal.py를 실행하면 나머지가 자동 채워집니다.    ║
+// ╚══════════════════════════════════════════════════════════╝
+var PORTAL_DATA = window.__PORTAL_DATA || {
+  lastUpdated: "2026-06-08",
+  notice_ko: "현재까지 검증 완료된 신규 버전입니다. 기존 버전과 상이하다면 다운로드를 진행해주세요.",
+  notice_en: "These are the latest verified versions. If your current version differs, please proceed with the download.",
+  notice_zh: "这些是经过验证的最新版本。如果您当前的版本不同，请进行下载。",
+  notice_ja: "これらは最新の検証済みバージョンです。現在のバージョンが異なる場合は、ダウンロードを進めてください。",
+  software: [
+    {
+      id: "aoigui-halcon",
+      name: "AOIGUI - Halcon",
+      icon: "🖥️",
+      iconClass: "blue",
+      category: "vision",
+      link: "https://kohyoung-my.sharepoint.com/:u:/p/sw_distmgt/IQAwYdV9vTZGQpP_FnnIzJQ1Aadfru4_zh_FtnZkw6x3o3I?e=nbEpJa",
+      versionName: "KY_AOI_2.10.2.0-52-g906169a6f5c(B_v1.0.0.0)",
+      date: "2026-06-08",
+      changelog_ko: "Lead - Bridge & Solder fillet : AI Engine Feedback 신규 개발 적용",
+      changelog_en: "Lead - Bridge & Solder fillet: New AI Engine Feedback development applied",
+      changelog_zh: "Lead - Bridge & Solder fillet: AI Engine Feedback 新开发应用",
+      changelog_ja: "Lead - Bridge & Solder fillet: AI Engine Feedback 新規開発適用",
+      matchPattern: "KY_AOI_",
+      matchExclude: "(F)"
+    },
+    {
+      id: "aoigui-fastred",
+      name: "AOIGUI - FastRed",
+      icon: "🖥️",
+      iconClass: "blue2",
+      category: "vision",
+      link: "https://kohyoung-my.sharepoint.com/:u:/p/sw_distmgt/IQAUfDoyLUkDSKLO2Y-3m1lGARN299AFNWoMamOm-2RtDT8?e=n83neS",
+      versionName: "KY_AOI_2.10.2.0-52-g906169a6f5c(F)(B_v1.0.0.0)",
+      date: "2026-06-08",
+      changelog_ko: "Lead - Bridge & Solder fillet : AI Engine Feedback 신규 개발 적용",
+      changelog_en: "Lead - Bridge & Solder fillet: New AI Engine Feedback development applied",
+      changelog_zh: "Lead - Bridge & Solder fillet: AI Engine Feedback 新开发应用",
+      changelog_ja: "Lead - Bridge & Solder fillet: AI Engine Feedback 新規開発適用",
+      matchPattern: "KY_AOI_",
+      matchRequire: "(F)"
+    },
+    {
+      id: "onnx",
+      name: "ONNX",
+      icon: "🧠",
+      iconClass: "purple",
+      category: "vision",
+      link: "https://kohyoung-my.sharepoint.com/:u:/p/cm_lim/IQArBlm-sBkUTKPiQ4K6X04GAVRfEmPk5TT9P3GXcjn3W8A?e=Oz2YV6",
+      versionName: "AOI_Onnx_Model_v2.1.0.1",
+      date: "2026-06-08",
+      changelog_ko: "신규 버전",
+      changelog_en: "New version",
+      changelog_zh: "新版本",
+      changelog_ja: "新バージョン",
+      matchPattern: "AOI_Onnx"
+    },
+    {
+      id: "aoigui-baselib",
+      name: "AOIGUI Base Library",
+      icon: "📚",
+      iconClass: "cyan",
+      category: "both",
+      link: "https://kohyoung-my.sharepoint.com/:u:/p/vs_aoi_manager/IQBY6ZPygjSlRrPCl3VEIqIOAT_Y9_F_E7Si6TSuhIKKDsE?e=bbXggR",
+      versionName: "SMTVision_Base_Library_v1.0.0.0",
+      date: "",
+      changelog_ko: "AOIGUI 2.10 이상 사용 시, 해당 Base Library 사용할 것",
+      changelog_en: "Use this Base Library when using AOIGUI 2.10 or above",
+      changelog_zh: "使用 AOIGUI 2.10 以上版本时，请使用此 Base Library",
+      changelog_ja: "AOIGUI 2.10 以上を使用する場合、この Base Library を使用すること",
+      matchPattern: "SMTVision_Base"
+    },
+    {
+      id: "graphic-driver",
+      name: "Graphic Driver",
+      icon: "🎮",
+      iconClass: "yellow",
+      category: "vision",
+      link: "https://kohyoung-my.sharepoint.com/:u:/p/vs_aoi_manager/IQCs4v-IGuc8QrFuy-nbx32VAayKRk0xQDbIVNmLvSehT2s?e=RlmI2z",
+      versionName: "580.97-desktop-win10-win11-64bit-international-dch-whql",
+      date: "2026-06-08",
+      changelog_ko: "AOIGUi 2.10 이상 버전 사용시, 필수 설치",
+      changelog_en: "Required installation when using AOIGUI 2.10 or above",
+      changelog_zh: "使用 AOIGUI 2.10 以上版本时，必须安装",
+      changelog_ja: "AOIGUI 2.10 以上のバージョン使用時、必須インストール",
+      matchPattern: "desktop"
+    },
+    {
+      id: "review-station",
+      name: "Review Station 3",
+      icon: "📋",
+      iconClass: "green",
+      category: "review",
+      link: "https://kohyoung-my.sharepoint.com/:u:/p/sw_distmgt/IQAOmYqUXUYiQZY-LooZ9PtGAR4EKkkhHfhyrj_h7vJBqN4?e=hhoU8B",
+      versionName: "Review_3.4.3.6(837715326)",
+      date: "2026-06-08",
+      changelog_ko: "",
+      changelog_en: "",
+      changelog_zh: "",
+      changelog_ja: "",
+      matchPattern: "Review_"
+    },
+    {
+      id: "ai-smartgate",
+      name: "AI SmartGate V2",
+      icon: "🚀",
+      iconClass: "pink",
+      category: "review",
+      link: "https://kohyoung-my.sharepoint.com/:u:/p/sw_distmgt/IQADGj6cjeMJRYz2p5ax5qGfAXFFyMcOpIMsT0H2H3VWzhw?e=3l01It",
+      versionName: "AISmartGate2.0.0.0(837715326)",
+      date: "2026-06-08",
+      changelog_ko: "",
+      changelog_en: "",
+      changelog_zh: "",
+      changelog_ja: "",
+      matchPattern: "AISmartGate"
+    },
+    {
+      id: "srocv",
+      name: "SROCV",
+      icon: "🔬",
+      iconClass: "red",
+      category: "review",
+      link: "https://kohyoung-my.sharepoint.com/:u:/p/cm_lim/IQBefbcsimGnSKZG2evMpTmQAZMd_gQ0BOnGsfTrGyFIils?e=G0B0e1",
+      versionName: "srocv.python_03_10_ocv_BodyFM_multi_v03_N_qdm",
+      date: "2026-06-08",
+      changelog_ko: "",
+      changelog_en: "",
+      changelog_zh: "",
+      changelog_ja: "",
+      matchPattern: "srocv"
+    },
+    {
+      id: "ai-modelmgmt",
+      name: "AI Model Management Tool",
+      icon: "🤖",
+      iconClass: "orange",
+      category: "tool",
+      link: "https://kohyoung-my.sharepoint.com/:u:/p/sw_distmgt/IQClTBvSdKeUQbvFvubiULIQAS6dmtAS6ygck7GX-4LXcr0?e=8e2K41",
+      versionName: "AIModelManagementTool_2.0.0.0(837715326)",
+      date: "2026-06-08",
+      changelog_ko: "",
+      changelog_en: "",
+      changelog_zh: "",
+      changelog_ja: "",
+      matchPattern: "AIModelManagementTool"
+    }
+  ]
+};
+
+// ─── UI Translations ─────────────────────────────────────────
+var UI_TRANSLATIONS = {
+  en: {
+    title: "Smart Review Version Portal",
+    subtitle: "AI Smart Review Software Distribution Center",
+    sectionOverview: "🔍 Version Overview — Quick Check",
+    hintMain: "Does your version differ from above?\nDownload the latest version below.",
+    hintSub: "Click the download button for the software you need to update.",
+    sectionDownload: "📦 Downloads",
+    btnDownload: "⬇ Download",
+    btnCompare: "🔄 Compare My Versions — Drag & drop your files to check",
+    dropMain: "Drag & Drop your SW files here",
+    dropSub: "Drop files or an entire folder — filenames are matched automatically",
+    dropHint: "Files are NOT uploaded. Only filenames are read in your browser.",
+    noteTitle: "📌 Notes",
+    note1: "If download is unavailable, please contact AES Team.",
+    note2: "AOIGUI Base Library is shared between Vision PC and Review PC — install on both.",
+    note3: "Contact: AES Team",
+    compareNote: "Files are NOT uploaded — only filenames are read in your browser for comparison.",
+    good: "Good", update: "Update", notFound: "Not Found",
+    goToDownload: "Go to Download", recompare: "Re-compare",
+    updatedLabel: "Last Updated:", managedBy: "AES Team | Jace.Ha",
+    detected: "Detected Files", close: "Close", closeResults: "Close comparison results",
+    upToDate: "Up to date", updateNeeded: "Update needed"
+  },
+  ko: {
+    title: "스마트 리뷰 버전 포털",
+    subtitle: "AI Smart Review 소프트웨어 배포 센터",
+    sectionOverview: "🔍 버전 현황 — 빠른 확인",
+    hintMain: "위 버전과 현재 사용 중인 버전이 다른가요?\n아래에서 최신 버전을 다운로드하세요.",
+    hintSub: "업데이트가 필요한 소프트웨어의 다운로드 버튼을 클릭하세요.",
+    sectionDownload: "📦 다운로드",
+    btnDownload: "⬇ 다운로드",
+    btnCompare: "🔄 내 버전 비교하기 — 파일을 드래그 앤 드롭하세요",
+    dropMain: "SW 파일을 여기에 드래그 앤 드롭하세요",
+    dropSub: "파일 또는 폴더를 드롭하면 파일명이 자동으로 매칭됩니다",
+    dropHint: "파일은 업로드되지 않습니다. 브라우저에서 파일명만 읽습니다.",
+    noteTitle: "📌 참고사항",
+    note1: "다운로드가 안 될 경우 AES팀에 문의해 주세요.",
+    note2: "AOIGUI Base Library는 Vision PC와 Review PC 양쪽에 설치해야 합니다.",
+    note3: "문의: AES Team",
+    compareNote: "파일은 업로드되지 않습니다. 브라우저에서 파일명만 읽어 비교합니다.",
+    good: "Good", update: "Update", notFound: "Not Found",
+    goToDownload: "다운로드로 이동", recompare: "다시 비교",
+    updatedLabel: "최종 업데이트:", managedBy: "AES팀 | Jace.Ha",
+    detected: "감지된 파일", close: "닫기", closeResults: "비교 결과 닫기",
+    upToDate: "최신 상태", updateNeeded: "업데이트 필요"
+  },
+  zh: {
+    title: "Smart Review 版本门户",
+    subtitle: "AI Smart Review 软件分发中心",
+    sectionOverview: "🔍 版本概览 — 快速检查",
+    hintMain: "您的版本与上方不同吗？\n请在下方下载最新版本。",
+    hintSub: "请点击需要更新的软件的下载按钮。",
+    sectionDownload: "📦 下载",
+    btnDownload: "⬇ 下载",
+    btnCompare: "🔄 比较我的版本 — 拖放文件进行检查",
+    dropMain: "将SW文件拖放到此处",
+    dropSub: "拖放文件或文件夹 — 文件名将自动匹配",
+    dropHint: "文件不会被上传。仅在浏览器中读取文件名。",
+    noteTitle: "📌 注意事项",
+    note1: "如无法下载，请联系AES Team。",
+    note2: "AOIGUI Base Library需在Vision PC和Review PC上同时安装。",
+    note3: "联系方式: AES Team",
+    compareNote: "文件不会被上传 — 仅在浏览器中读取文件名进行比较。",
+    good: "Good", update: "Update", notFound: "Not Found",
+    goToDownload: "前往下载", recompare: "重新比较",
+    updatedLabel: "最后更新:", managedBy: "AES Team | Jace.Ha",
+    detected: "检测到的文件", close: "关闭", closeResults: "关闭比较结果",
+    upToDate: "已是最新", updateNeeded: "需要更新"
+  },
+  ja: {
+    title: "Smart Review バージョンポータル",
+    subtitle: "AI Smart Review ソフトウェア配布センター",
+    sectionOverview: "🔍 バージョン概要 — クイックチェック",
+    hintMain: "お使いのバージョンと上記が異なりますか？\n下記から最新バージョンをダウンロードしてください。",
+    hintSub: "更新が必要なソフトウェアのダウンロードボタンをクリックしてください。",
+    sectionDownload: "📦 ダウンロード",
+    btnDownload: "⬇ ダウンロード",
+    btnCompare: "🔄 バージョンを比較 — ファイルをドラッグ＆ドロップ",
+    dropMain: "SWファイルをここにドラッグ＆ドロップ",
+    dropSub: "ファイルまたはフォルダをドロップすると、ファイル名が自動マッチングされます。",
+    dropHint: "ファイルはアップロードされません。ブラウザでファイル名のみ読み取ります。",
+    noteTitle: "📌 注意事項",
+    note1: "ダウンロードできない場合はAES Teamにお問い合わせください。",
+    note2: "AOIGUI Base LibraryはVision PCとReview PCの両方にインストールしてください。",
+    note3: "お問い合わせ: AES Team",
+    compareNote: "ファイルはアップロードされません — ブラウザでファイル名のみ読み取り比較します。",
+    good: "Good", update: "Update", notFound: "Not Found",
+    goToDownload: "ダウンロードへ", recompare: "再比較",
+    updatedLabel: "最終更新:", managedBy: "AES Team | Jace.Ha",
+    detected: "検出されたファイル", close: "閉じる", closeResults: "比較結果を閉じる",
+    upToDate: "最新です", updateNeeded: "更新が必要"
+  }
+};
+
+// ─── Apply server-side UI overrides ──────────────────────────
+if (PORTAL_DATA.ui_overrides) {
+  var ov = PORTAL_DATA.ui_overrides;
+  for (var lang in ov) {
+    if (UI[lang]) {
+      for (var key in ov[lang]) {
+        UI[lang][key] = ov[lang][key];
+      }
+    }
+  }
+}
+
+// ─── Language state ──────────────────────────────────────────
+var currentLang = 'en';
+
+// ─── Helpers ─────────────────────────────────────────────────
+function esc(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+function getChangelog(sw) {
+  var key = 'changelog_' + currentLang;
+  return sw[key] || sw.changelog_en || sw.changelog_ko || '';
+}
+
+function getCategoryLabel(category) {
+  switch (category) {
+    case 'vision':  return 'Vision PC';
+    case 'review':  return 'Review PC';
+    case 'both':    return 'Vision + Review PC';
+    case 'tool':    return 'Standalone';
+    default:        return category;
+  }
+}
+
+function getNotice() {
+  var key = 'notice_' + currentLang;
+  return PORTAL_DATA[key] || PORTAL_DATA.notice_en || '';
+}
+
+// ─── renderPortal ─────────────────────────────────────────────
+function renderPortal() {
+  var d = PORTAL_DATA;
+
+  // ── HEADER ──────────────────────────────────────────────────
+  var headerHTML = [
+    '<div class="header">',
+    '  <div class="header-top">',
+    '    <div class="logo-area">',
+    '      <div class="logo-icon">KY</div>',
+    '      <div class="logo-text">',
+    '        <h1 id="portal-title">Smart Review Version Portal</h1>',
+    '        <p id="portal-subtitle">AI Smart Review Software Distribution Center</p>',
+    '      </div>',
+    '    </div>',
+    '    <div class="header-right">',
+    '      <div class="lang-switcher" id="langSwitcher">',
+    '        <button class="lang-btn" data-lang="en"  onclick="switchLang(\'en\')">EN</button>',
+    '        <button class="lang-btn" data-lang="ko"  onclick="switchLang(\'ko\')">한국어</button>',
+    '        <button class="lang-btn" data-lang="zh"  onclick="switchLang(\'zh\')">中文</button>',
+    '        <button class="lang-btn" data-lang="ja"  onclick="switchLang(\'ja\')">日本語</button>',
+    '      </div>',
+    '      <div class="last-updated" id="lastUpdatedBlock">',
+    '        Last Updated: <span id="lastUpdatedDate">' + esc(d.lastUpdated) + '</span><br>',
+    '        AES Team &nbsp;|&nbsp; Jace.Ha',
+    '      </div>',
+    '    </div>',
+    '  </div>',
+    '  <div class="notice-bar" id="noticeBar">✅ ' + esc(getNotice()) + '</div>',
+    '</div>'
+  ].join('\n');
+
+  // ── OVERVIEW CARDS ──────────────────────────────────────────
+  var groups = {
+    vision: { label: 'Vision PC',         icon: '🖥️', headerClass: 'vision', items: [] },
+    review: { label: 'Review PC',          icon: '📋', headerClass: 'review', items: [] },
+    tool:   { label: 'AI Model Mgmt Tool', icon: '🤖', headerClass: 'tool',   items: [] }
+  };
+
+  d.software.forEach(function(sw) {
+    if (sw.category === 'vision' || sw.category === 'both') {
+      groups.vision.items.push(sw);
+    }
+    if (sw.category === 'review' || sw.category === 'both') {
+      groups.review.items.push(sw);
+    }
+    if (sw.category === 'tool') {
+      groups.tool.items.push(sw);
+    }
+  });
+
+  function renderOverviewCard(group) {
+    var rows = group.items.map(function(sw) {
+      var ver = sw.versionName ? esc(sw.versionName) : '—';
+      return [
+        '<div class="overview-row">',
+        '  <div class="overview-sw-name">' + esc(sw.name) + '</div>',
+        '  <div class="overview-version">' + ver + '</div>',
+        '</div>'
+      ].join('');
+    }).join('');
+
+    return [
+      '<div class="overview-card">',
+      '  <div class="overview-card-header ' + group.headerClass + '">',
+      '    <span>' + group.icon + '</span> ' + esc(group.label),
+      '  </div>',
+      '  <div class="overview-card-body">' + rows + '</div>',
+      '</div>'
+    ].join('\n');
+  }
+
+  var overviewHTML = [
+    '<div class="overview-section" id="overviewSection">',
+    '  <div class="section-title" id="overviewTitle">🔍 Version Overview — Quick Check</div>',
+    '  <div class="overview-grid" id="overviewGrid">',
+    '    ' + renderOverviewCard(groups.vision),
+    '    ' + renderOverviewCard(groups.review),
+    '    ' + renderOverviewCard(groups.tool),
+    '  </div>',
+    '</div>'
+  ].join('\n');
+
+  // ── COMPARE BUTTON AREA ─────────────────────────────────────
+  var compareHTML = [
+    '<div class="compare-btn-area" id="compareBtnArea">',
+    '  <button class="compare-trigger" id="compareTriggerBtn" onclick="openCompare()">',
+    '    🔄 <span id="compareBtnText">Compare My Versions — Drag &amp; drop your files to check</span>',
+    '  </button>',
+    '</div>',
+
+    '<!-- Drop Zone (hidden by default) -->',
+    '<div class="compare-panel" id="comparePanel">',
+    '  <div class="dropzone" id="dropzone"',
+    '       ondragover="event.preventDefault(); this.classList.add(\'dragover\')"',
+    '       ondragleave="this.classList.remove(\'dragover\')"',
+    '       ondrop="event.preventDefault(); this.classList.remove(\'dragover\'); handleDrop(event)">',
+    '    <div class="dropzone-icon">📂</div>',
+    '    <div class="dropzone-main" id="dropzoneMain">Drag &amp; Drop your SW files here</div>',
+    '    <div class="dropzone-sub"  id="dropzoneSub">Drop files or an entire folder — filenames are matched automatically</div>',
+    '    <div class="dropzone-hint" id="dropzoneHint">Files are NOT uploaded. Only filenames are read in your browser.</div>',
+    '  </div>',
+    '  <button class="compare-close" onclick="closeCompare()">✕ <span id="closeCompareText">Close</span></button>',
+    '</div>',
+
+    '<!-- Compare Results (hidden by default) -->',
+    '<div class="compare-results" id="compareResults">',
+    '  <div class="detected-files">',
+    '    <div class="detected-title" id="detectedTitle">📎 Detected Files (<span id="detectedCount">0</span>)</div>',
+    '    <div class="detected-list" id="detectedList"></div>',
+    '  </div>',
+    '  <div class="results-header">',
+    '    <div class="results-summary" id="resultsSummary"></div>',
+    '    <button class="reset-btn" onclick="resetCompare()" id="recompareBtn">🔄 Re-compare</button>',
+    '  </div>',
+    '  <div class="result-grid" id="resultGrid"></div>',
+    '  <p class="compare-note" id="compareNote">Files are NOT uploaded — only filenames are read in your browser for comparison.</p>',
+    '  <div style="text-align:center; margin-top:12px;">',
+    '    <button class="compare-close" onclick="closeResults()">✕ <span id="closeResultsText">Close comparison results</span></button>',
+    '  </div>',
+    '</div>'
+  ].join('\n');
+
+  // ── COMPARE HINT BOX ────────────────────────────────────────
+  var hintHTML = [
+    '<div class="compare-hint-box" id="compareHintBox">',
+    '  <div class="arrow-row">↓ ↓ ↓</div>',
+    '  <div class="hint-main" id="hintMain">Does your version differ from above?<br>Download the latest version below.</div>',
+    '  <div class="hint-sub"  id="hintSub">Click the download button for the software you need to update.</div>',
+    '</div>'
+  ].join('\n');
+
+  // ── DOWNLOAD CARDS ──────────────────────────────────────────
+  var swCardsHTML = d.software.map(function(sw) {
+    var ver       = sw.versionName ? '<span class="version-badge-long">' + esc(sw.versionName) + '</span>' : '';
+    var dateStr   = sw.date        ? '<span class="date">' + esc(sw.date) + '</span>' : '';
+    var changelog = getChangelog(sw);
+    var changelogHTML = changelog ? '<div class="changelog">' + esc(changelog) + '</div>' : '';
+    var catLabel  = getCategoryLabel(sw.category);
+    var tagClass  = sw.category === 'both' ? 'both' : sw.category;
+
+    var dlBtn;
+    if (sw.link) {
+      dlBtn = '<a class="download-btn" href="' + esc(sw.link) + '" target="_blank">⬇ Download</a>';
+    } else {
+      dlBtn = '<a class="download-btn disabled" href="#" onclick="return false;" aria-disabled="true">⬇ Download</a>';
+    }
+
+    return [
+      '<div class="sw-card" id="dl-' + esc(sw.id) + '">',
+      '  <div class="sw-info">',
+      '    <div class="sw-icon ' + esc(sw.iconClass) + '">' + sw.icon + '</div>',
+      '    <div class="sw-text">',
+      '      <div class="sw-details">',
+      '        <h3>' + esc(sw.name) + '</h3>',
+      '        <div class="sw-meta">',
+      '          ' + ver,
+      '          <span class="tag ' + tagClass + '">' + esc(catLabel) + '</span>',
+      '          ' + dateStr,
+      '        </div>',
+      '      </div>',
+      '      ' + changelogHTML,
+      '    </div>',
+      '  </div>',
+      '  ' + dlBtn,
+      '</div>'
+    ].join('\n');
+  }).join('\n');
+
+  var downloadsHTML = [
+    '<hr class="divider">',
+    '<div class="section-title" id="downloadsTitle">📦 Downloads</div>',
+    '<div class="sw-grid" id="swGrid">',
+    swCardsHTML,
+    '</div>'
+  ].join('\n');
+
+  // ── NOTES ───────────────────────────────────────────────────
+  var notesHTML = [
+    '<div class="note-section" id="noteSection">',
+    '  <h3 id="notesTitle">📌 Notes</h3>',
+    '  <ul id="notesList">',
+    '    <li id="note1">If download is unavailable, please contact AES Team.</li>',
+    '    <li id="note2">AOIGUI Base Library is shared between Vision PC and Review PC — install on both.</li>',
+    '    <li id="note3">Contact: AES Team</li>',
+    '  </ul>',
+    '</div>'
+  ].join('\n');
+
+  // ── FOOTER ──────────────────────────────────────────────────
+  var footerHTML = '<div class="footer" id="pageFooter">© 2026 KohYoung Technology — AES Team &nbsp;|&nbsp; Smart Review Version Portal v1.0</div>';
+
+  // ── ASSEMBLE ────────────────────────────────────────────────
+  document.body.innerHTML = [
+    headerHTML,
+    '<div class="container">',
+    overviewHTML,
+    compareHTML,
+    hintHTML,
+    downloadsHTML,
+    notesHTML,
+    '</div>',
+    footerHTML
+  ].join('\n');
+}
+
+// ─── Language switch ──────────────────────────────────────────
+function switchLang(lang) {
+  currentLang = lang;
+
+  // Re-render so changelogs and notice update to chosen language
+  renderPortal();
+
+  // Apply UI translations to all labelled elements
+  applyTranslations();
+
+  // Re-apply active state (renderPortal rebuilds DOM with default 'en')
+  document.querySelectorAll('.lang-btn').forEach(function(b) {
+    if (b.getAttribute('data-lang') === lang) b.classList.add('active');
+    else b.classList.remove('active');
+  });
+}
+
+function applyTranslations() {
+  var t = UI_TRANSLATIONS[currentLang] || UI_TRANSLATIONS['en'];
+
+  function setText(id, text) {
+    var el = document.getElementById(id);
+    if (el) el.textContent = text;
+  }
+  function setHTML(id, html) {
+    var el = document.getElementById(id);
+    if (el) el.innerHTML = html;
+  }
+
+  // Header
+  setText('portal-title',    t.title);
+  setText('portal-subtitle', t.subtitle);
+
+  // Last updated block — rebuild with translated label
+  setHTML('lastUpdatedBlock',
+    esc(t.updatedLabel) + ' <span id="lastUpdatedDate">' + esc(PORTAL_DATA.lastUpdated) + '</span><br>' +
+    esc(t.managedBy)
+  );
+
+  // Notice bar
+  setHTML('noticeBar', '✅ ' + esc(getNotice()));
+
+  // Overview section
+  setText('overviewTitle', t.sectionOverview);
+
+  // Compare button text
+  setText('compareBtnText', t.btnCompare);
+
+  // Dropzone
+  setText('dropzoneMain', t.dropMain);
+  setText('dropzoneSub',  t.dropSub);
+  setText('dropzoneHint', t.dropHint);
+  setText('closeCompareText', t.close);
+
+  // Hint box
+  setHTML('hintMain', esc(t.hintMain).replace(/\n/g, '<br>'));
+  setText('hintSub',  t.hintSub);
+
+  // Downloads section title
+  setText('downloadsTitle', t.sectionDownload);
+
+  // All download buttons
+  document.querySelectorAll('.download-btn').forEach(function(btn) {
+    btn.textContent = t.btnDownload;
+  });
+
+  // Notes
+  setText('notesTitle', t.noteTitle);
+  setText('note1', t.note1);
+  setText('note2', t.note2);
+  setText('note3', t.note3);
+
+  // Compare results panel
+  setText('compareNote',    t.compareNote);
+  setText('recompareBtn',   '🔄 ' + t.recompare);
+  setText('closeResultsText', t.closeResults);
+
+  // Detected files title (preserve count if visible)
+  var countEl = document.getElementById('detectedCount');
+  var count = countEl ? countEl.textContent : '0';
+  setHTML('detectedTitle', '📎 ' + esc(t.detected) + ' (<span id="detectedCount">' + count + '</span>)');
+}
+
+// ─── Compare helpers ──────────────────────────────────────────
+function openCompare() {
+  document.getElementById('compareBtnArea').style.display = 'none';
+  document.getElementById('comparePanel').classList.add('open');
+  document.getElementById('compareResults').classList.remove('open');
+}
+function closeCompare() {
+  document.getElementById('comparePanel').classList.remove('open');
+  document.getElementById('compareResults').classList.remove('open');
+  document.getElementById('compareBtnArea').style.display = 'block';
+}
+function resetCompare() {
+  document.getElementById('compareResults').classList.remove('open');
+  document.getElementById('comparePanel').classList.add('open');
+}
+function closeResults() {
+  document.getElementById('compareResults').classList.remove('open');
+  document.getElementById('compareBtnArea').style.display = 'block';
+}
+
+// ─── handleDrop: collect file names (supports folders) ────────
+function handleDrop(event) {
+  var fileNames = [];
+  var dt = event.dataTransfer;
+
+  // Simple approach first: read from dataTransfer.files (most reliable)
+  if (dt.files && dt.files.length > 0) {
+    for (var i = 0; i < dt.files.length; i++) {
+      fileNames.push(dt.files[i].name);
+    }
+  }
+
+  // If simple approach got files, use them
+  if (fileNames.length > 0) {
+    runComparison(fileNames);
+    return;
+  }
+
+  // Fallback: try webkitGetAsEntry for folder support
+  if (dt.items) {
+    var pending = 0;
+    var hasEntries = false;
+
+    function checkDone() {
+      if (pending === 0 && hasEntries) {
+        runComparison(fileNames);
+      }
+    }
+
+    function readEntry(entry) {
+      if (entry.isFile) {
+        pending++;
+        entry.file(function(f) {
+          fileNames.push(f.name);
+          pending--;
+          checkDone();
+        }, function() {
+          pending--;
+          checkDone();
+        });
+      } else if (entry.isDirectory) {
+        pending++;
+        var reader = entry.createReader();
+        (function readBatch() {
+          reader.readEntries(function(entries) {
+            if (entries.length === 0) {
+              pending--;
+              checkDone();
+              return;
+            }
+            entries.forEach(function(e) { readEntry(e); });
+            readBatch();
+          }, function() {
+            pending--;
+            checkDone();
+          });
+        })();
+      }
+    }
+
+    for (var j = 0; j < dt.items.length; j++) {
+      if (dt.items[j].kind !== 'file') continue;
+      var entry = dt.items[j].webkitGetAsEntry ? dt.items[j].webkitGetAsEntry() : null;
+      if (entry) {
+        hasEntries = true;
+        readEntry(entry);
+      }
+    }
+
+    if (!hasEntries) {
+      runComparison(fileNames);
+    }
+  }
+}
+
+function extractVersionCore(str) {
+  var cleaned = str.replace(/[_\-]?x(?:86|64)[_\-]?/gi, '_');
+  cleaned = cleaned.replace(/[_\-]?(Installer|Setup|install|setup)(\s*\(\d+\))?/gi, '');
+  cleaned = cleaned.replace(/\s*\(\d{1,4}\)\s*$/, '');
+  var m = cleaned.match(/(\d+\.\d+[\.\d]*[\-\w]*(?:\([^)]*\))?)/);
+  if (m) return m[1].toLowerCase();
+  var fallback = cleaned.replace(/\s*\(\d+\)\s*/g, '').trim();
+  return fallback.toLowerCase();
+}
+
+// ─── runComparison: match filenames against PORTAL_DATA ───────
+function runComparison(fileNames) {
+  var results = [];
+
+  function getLatestVersion(sw) {
+    if (sw.versionName) return sw.versionName;
+    if (sw.link) {
+      var path = decodeURIComponent(sw.link).split('/').pop().split('?')[0];
+      return path.replace(/\.(exe|msi|zip|7z|rar|tar\.gz)$/i, '') || '';
+    }
+    return '';
+  }
+
+  PORTAL_DATA.software.forEach(function(sw) {
+    var latestVer = getLatestVersion(sw);
+    var pattern = sw.matchPattern.toLowerCase();
+    var matched = null;
+
+    for (var i = 0; i < fileNames.length; i++) {
+      var fn = fileNames[i].toLowerCase();
+      if (fn.indexOf(pattern) === -1) continue;
+      if (sw.matchExclude && fn.indexOf(sw.matchExclude.toLowerCase()) !== -1) continue;
+      if (sw.matchRequire && fn.indexOf(sw.matchRequire.toLowerCase()) === -1) continue;
+      matched = fileNames[i];
+      break;
+    }
+
+    if (!matched) {
+      results.push({ sw: sw, status: 'notfound', userVer: null, latestVer: latestVer });
+      return;
+    }
+
+    var userVer = matched.replace(/\.(exe|msi|zip|7z|rar|tar\.gz|gz)$/i, '');
+
+    if (!latestVer) {
+      results.push({ sw: sw, status: 'notfound', userVer: userVer, latestVer: '' });
+      return;
+    }
+
+    var userCore = extractVersionCore(userVer);
+    var latestCore = extractVersionCore(latestVer);
+
+    if (userCore && latestCore && userCore === latestCore) {
+      results.push({ sw: sw, status: 'good', userVer: userVer, latestVer: latestVer });
+    } else {
+      results.push({ sw: sw, status: 'update', userVer: userVer, latestVer: latestVer });
+    }
+  });
+
+  renderCompareResults(fileNames, results);
+}
+
+// ─── renderCompareResults ──────────────────────────────────────
+function renderCompareResults(fileNames, results) {
+  var t = UI_TRANSLATIONS[currentLang] || UI_TRANSLATIONS['en'];
+
+  // Hide drop panel, show results
+  document.getElementById('comparePanel').classList.remove('open');
+  document.getElementById('compareResults').classList.add('open');
+
+  // ── Detected files ─────────────────────────────────────────
+  var detectedCountEl = document.getElementById('detectedCount');
+  if (detectedCountEl) detectedCountEl.textContent = fileNames.length;
+
+  var detectedTitleEl = document.getElementById('detectedTitle');
+  if (detectedTitleEl) {
+    detectedTitleEl.innerHTML = '📎 ' + esc(t.detected) +
+      ' (<span id="detectedCount">' + fileNames.length + '</span>)';
+  }
+
+  var listEl = document.getElementById('detectedList');
+  if (listEl) {
+    listEl.innerHTML = fileNames.map(function(n) {
+      return '<span class="detected-chip">' + esc(n) + '</span>';
+    }).join('');
+  }
+
+  // ── Summary badges ─────────────────────────────────────────
+  var goodCount  = results.filter(function(r) { return r.status === 'good';     }).length;
+  var updCount   = results.filter(function(r) { return r.status === 'update';   }).length;
+  var nfCount    = results.filter(function(r) { return r.status === 'notfound'; }).length;
+
+  var summaryEl = document.getElementById('resultsSummary');
+  if (summaryEl) {
+    summaryEl.innerHTML =
+      '<span class="summary-badge match">✅ ' + goodCount + ' ' + esc(t.good) + '</span>' +
+      '<span class="summary-badge diff">🔄 ' + updCount  + ' ' + esc(t.update) + '</span>' +
+      '<span class="summary-badge notfound">❓ ' + nfCount + ' ' + esc(t.notFound) + '</span>';
+  }
+
+  // ── Recompare / close buttons ──────────────────────────────
+  var reBtn = document.getElementById('recompareBtn');
+  if (reBtn) reBtn.textContent = '🔄 ' + t.recompare;
+
+  var closeResEl = document.getElementById('closeResultsText');
+  if (closeResEl) closeResEl.textContent = t.closeResults;
+
+  // ── Result rows: update → notfound → good ──────────────────
+  var sorted = results.slice().sort(function(a, b) {
+    var order = { update: 0, notfound: 1, good: 2 };
+    return order[a.status] - order[b.status];
+  });
+
+  var rows = sorted.map(function(r) {
+    var sw = r.sw;
+    var rowClass, icon, actionHTML, versionsHTML;
+
+    if (r.status === 'good') {
+      rowClass = 'match';
+      icon = '✅';
+      versionsHTML =
+        '<span class="result-ver-label">Yours</span>' +
+        '<span class="result-ver yours">' + esc(r.userVer) + '</span>' +
+        '<span class="result-arrow">→</span>' +
+        '<span class="result-ver-label">Latest</span>' +
+        '<span class="result-ver latest is-match">' + esc(r.latestVer) + '</span>';
+      actionHTML = '<span class="match-label">✅ ' + esc(t.good) + '</span>';
+
+    } else if (r.status === 'update') {
+      rowClass = 'diff';
+      icon = '🔄';
+      versionsHTML =
+        '<span class="result-ver-label">Yours</span>' +
+        '<span class="result-ver yours">' + esc(r.userVer) + '</span>' +
+        '<span class="result-arrow">→</span>' +
+        '<span class="result-ver-label">Latest</span>' +
+        '<span class="result-ver latest is-diff">' + esc(r.latestVer) + '</span>';
+      actionHTML =
+        '<button class="dl-btn-sm" onclick="scrollToDl(\'dl-' + esc(sw.id) + '\')">' +
+        '🔄 ' + esc(t.update) + ' →</button>';
+
+    } else {
+      rowClass = 'notfound';
+      icon = '❓';
+      versionsHTML =
+        '<span class="result-ver yours" style="color:#8a94a6;">' + esc(t.notFound) + '</span>';
+      actionHTML =
+        '<button class="dl-btn-sm" onclick="scrollToDl(\'dl-' + esc(sw.id) + '\')">' +
+        '📥 ' + esc(t.goToDownload) + ' →</button>';
+    }
+
+    return [
+      '<div class="result-row ' + rowClass + '">',
+      '  <div class="result-status">' + icon + '</div>',
+      '  <div class="result-info">',
+      '    <div class="result-sw-name">' + esc(sw.name) + '</div>',
+      '    <div class="result-versions">' + versionsHTML + '</div>',
+      '  </div>',
+      '  <div class="result-action">' + actionHTML + '</div>',
+      '</div>'
+    ].join('\n');
+  }).join('\n');
+
+  var gridEl = document.getElementById('resultGrid');
+  if (gridEl) gridEl.innerHTML = rows;
+
+  // ── Compare note ────────────────────────────────────────────
+  var noteEl = document.getElementById('compareNote');
+  if (noteEl) noteEl.textContent = t.compareNote;
+}
+
+// ─── scrollToDl ───────────────────────────────────────────────
+function scrollToDl(id) {
+  if (typeof event !== 'undefined' && event) event.preventDefault();
+  var el = document.getElementById(id);
+  if (el) {
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    el.style.transition = 'box-shadow 0.3s, border-color 0.3s';
+    el.style.boxShadow = '0 0 0 3px rgba(74,90,138,0.4)';
+    el.style.borderColor = '#4a5a8a';
+    setTimeout(function() {
+      el.style.boxShadow = '';
+      el.style.borderColor = '';
+    }, 2000);
+  }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  renderPortal();
+  applyTranslations();
+});
+</script>
+
+</body>
+</html>
