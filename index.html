@@ -1145,28 +1145,49 @@ var UPDATE_LABELS = {
   en: {
     title: 'Update Detected',
     msg: 'There are updated items.\nPlease make sure to compare your versions.',
+    offlineTitle: 'No Internet Connection',
+    offlineMsg: 'Please check your internet connection.\nThe latest information is not reflected.',
     close: 'OK'
   },
   ko: {
     title: '업데이트 감지',
     msg: '업데이트된 사항이 있습니다.\n필히 버전 비교 부탁드립니다.',
+    offlineTitle: '인터넷 연결 없음',
+    offlineMsg: '인터넷 연결상태를 확인해주세요.\n최신 정보가 반영되지 않습니다.',
     close: '확인'
   },
   zh: {
     title: '检测到更新',
     msg: '有更新的内容。\n请务必进行版本比较。',
+    offlineTitle: '无网络连接',
+    offlineMsg: '请检查网络连接状态。\n最新信息未能反映。',
     close: '确认'
   },
   ja: {
     title: 'アップデート検出',
     msg: '更新された項目があります。\n必ずバージョンを比較してください。',
+    offlineTitle: 'インターネット未接続',
+    offlineMsg: 'インターネットの接続状態をご確認ください。\n最新情報が反映されていません。',
     close: '確認'
   }
 };
 
-function showUpdatePopup(changes) {
-  if (!changes || changes.length === 0) return;
+function showUpdatePopup(changes, offline) {
+  var hasChanges = changes && changes.length > 0;
+  if (!hasChanges && !offline) return;
+
   var t = UPDATE_LABELS[currentLang] || UPDATE_LABELS['en'];
+  var icon, title, msg;
+
+  if (offline) {
+    icon = '⚠️';
+    title = t.offlineTitle;
+    msg = t.offlineMsg;
+  } else {
+    icon = '🔔';
+    title = t.title;
+    msg = t.msg;
+  }
 
   var overlay = document.createElement('div');
   overlay.className = 'update-overlay';
@@ -1174,11 +1195,11 @@ function showUpdatePopup(changes) {
   overlay.innerHTML = [
     '<div class="update-popup">',
     '  <div class="update-popup-header">',
-    '    <div class="popup-icon">🔔</div>',
-    '    <h2>' + esc(t.title) + '</h2>',
+    '    <div class="popup-icon">' + icon + '</div>',
+    '    <h2>' + esc(title) + '</h2>',
     '  </div>',
     '  <div class="update-popup-body">',
-    '    <div class="update-popup-msg">' + esc(t.msg).replace(/\n/g, '<br>') + '</div>',
+    '    <div class="update-popup-msg">' + esc(msg).replace(/\n/g, '<br>') + '</div>',
     '  </div>',
     '  <div class="update-popup-footer">',
     '    <button class="update-close-btn" onclick="closeUpdatePopup()">' + esc(t.close) + '</button>',
@@ -1196,10 +1217,11 @@ function closeUpdatePopup() {
 
 document.addEventListener('DOMContentLoaded', function() {
   var updateChanges = null;
+  var isOffline = false;
 
   fetch('update-info.json')
     .then(function(r) { return r.ok ? r.json() : Promise.reject(); })
-    .then(function(info) { updateChanges = info.changes || []; })
+    .then(function(info) { updateChanges = info.changes || []; isOffline = !!info.offline; })
     .catch(function() {});
 
   fetch('portal-data.json')
@@ -1209,7 +1231,7 @@ document.addEventListener('DOMContentLoaded', function() {
     .finally(function() {
       renderPortal();
       applyTranslations();
-      setTimeout(function() { showUpdatePopup(updateChanges); }, 500);
+      setTimeout(function() { showUpdatePopup(updateChanges, isOffline); }, 500);
     });
 });
 </script>

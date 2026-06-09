@@ -146,10 +146,12 @@ def main():
     data = fetch_remote_data(config)
 
     changes = []
+    offline = False
     if data is not None:
         changes = detect_changes(old_cache, data)
         save_cache(data)
     else:
+        offline = True
         data = old_cache
     if data is None:
         data = load_local_data()
@@ -169,7 +171,7 @@ def main():
             json.dump(data, f, ensure_ascii=False, indent=2)
 
     with open(update_path, "w", encoding="utf-8") as f:
-        json.dump({"changes": changes}, f, ensure_ascii=False, indent=2)
+        json.dump({"changes": changes, "offline": offline}, f, ensure_ascii=False, indent=2)
 
     width = config.get("window_width", 1200)
     height = config.get("window_height", 850)
