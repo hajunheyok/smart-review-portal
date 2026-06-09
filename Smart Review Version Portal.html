@@ -409,7 +409,7 @@ var UI_TRANSLATIONS = {
     noteTitle: "📌 Notes",
     note1: "If download is unavailable, please contact AES Team.",
     note2: "AOIGUI Base Library is shared between Vision PC and Review PC — install on both.",
-    note3: "Contact: AES Team",
+    note3: "",
     compareNote: "Files are NOT uploaded — only filenames are read in your browser for comparison.",
     good: "Good", update: "Update", notFound: "Not Found",
     goToDownload: "Go to Download", recompare: "Re-compare",
@@ -717,7 +717,7 @@ function renderPortal() {
     '  <ul id="notesList">',
     '    <li id="note1">If download is unavailable, please contact AES Team.</li>',
     '    <li id="note2">AOIGUI Base Library is shared between Vision PC and Review PC — install on both.</li>',
-    '    <li id="note3">Contact: AES Team</li>',
+    '',
     '  </ul>',
     '</div>'
   ].join('\n');
@@ -1105,8 +1105,11 @@ function scrollToDl(id) {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
-  renderPortal();
-  applyTranslations();
+  fetch('portal-data.json')
+    .then(function(r) { return r.ok ? r.json() : Promise.reject(); })
+    .then(function(data) { PORTAL_DATA = data; })
+    .catch(function() { /* embedded fallback */ })
+    .finally(function() { renderPortal(); applyTranslations(); });
 });
 </script>
 
