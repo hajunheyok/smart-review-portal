@@ -6,6 +6,7 @@ import sys
 import os
 import json
 import tempfile
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import requests
 import webview
@@ -42,23 +43,31 @@ def load_config():
 GITHUB_DATA_URL = "https://hajunheyok.github.io/smart-review-portal/portal-data.json"
 
 
+def _fetch_url(url):
+    """Fetch a single URL and return parsed JSON."""
+    resp = requests.get(url, timeout=5, allow_redirects=True)
+    resp.raise_for_status()
+    return resp.json()
+
+
 def fetch_remote_data(config):
     """
-    Fetch portal-data.json. Try internal server first, fall back to GitHub Pages.
+    Fetch portal-data.json from internal server and GitHub Pages in parallel.
+    Returns whichever responds first successfully.
     """
-    urls = [config.get("data_url", ""), GITHUB_DATA_URL]
+    urls = [u for u in [config.get("data_url", ""), GITHUB_DATA_URL] if u]
+    if not urls:
+        return None
 
-    for url in urls:
-        if not url:
-            continue
-        try:
-            resp = requests.get(url, timeout=5, allow_redirects=True)
-            resp.raise_for_status()
-            data = resp.json()
-            save_cache(data)
-            return data
-        except Exception:
-            continue
+    with ThreadPoolExecutor(max_workers=len(urls)) as executor:
+        futures = {executor.submit(_fetch_url, url): url for url in urls}
+        for future in as_completed(futures):
+            try:
+                data = future.result()
+                save_cache(data)
+                return data
+            except Exception:
+                continue
 
     return None
 
