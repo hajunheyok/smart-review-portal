@@ -338,7 +338,7 @@
 // ║  수정 후 manage_portal.py를 실행하면 나머지가 자동 채워집니다.    ║
 // ╚══════════════════════════════════════════════════════════╝
 var PORTAL_DATA = window.__PORTAL_DATA || {
-  lastUpdated: "2026-06-08",
+  lastUpdated: "2026-06-09",
   notice_ko: "현재까지 검증 완료된 신규 버전입니다. 기존 버전과 상이하다면 다운로드를 진행해주세요.",
   notice_en: "These are the latest verified versions. If your current version differs, please proceed with the download.",
   notice_zh: "这些是经过验证的最新版本。如果您当前的版本不同，请进行下载。",
@@ -414,12 +414,14 @@ var PORTAL_DATA = window.__PORTAL_DATA || {
       category: "vision",
       link: "https://kohyoung-my.sharepoint.com/:u:/p/vs_aoi_manager/IQCs4v-IGuc8QrFuy-nbx32VAayKRk0xQDbIVNmLvSehT2s?e=RlmI2z",
       versionName: "580.97-desktop-win10-win11-64bit-international-dch-whql",
-      date: "2026-06-08",
-      changelog_ko: "AOIGUi 2.10 이상 버전 사용시, 필수 설치",
-      changelog_en: "Required installation when using AOIGUI 2.10 or above",
-      changelog_zh: "使用 AOIGUI 2.10 以上版本时，必须安装",
-      changelog_ja: "AOIGUI 2.10 以上のバージョン使用時、必須インストール",
-      matchPattern: "desktop"
+      date: "2026-06-09",
+      changelog_ko: "AOIGUI 2.10 이상 버전 사용시, 필수 설치",
+      changelog_en: "",
+      changelog_zh: "",
+      changelog_ja: "",
+      matchPattern: "desktop",
+      changelog_es: "",
+      changelog_de: ""
     },
     {
       id: "review-station",
@@ -1527,11 +1529,50 @@ function closeUpdatePopup() {
   if (el) el.remove();
 }
 
+function showSiteSelector(sites) {
+  var options = sites.map(function(s) {
+    return '<option value="' + s.code + '">' + s.code + ' — ' + s.name + '</option>';
+  }).join('');
+  var overlay = document.createElement('div');
+  overlay.className = 'update-overlay';
+  overlay.id = 'siteSelectOverlay';
+  overlay.innerHTML = [
+    '<div class="update-popup" style="width:440px;">',
+    '  <div class="update-popup-header">',
+    '    <div class="popup-icon">🏢</div>',
+    '    <h2>지사 선택 / Select Office</h2>',
+    '    <p>포털을 사용하는 지사를 선택해주세요</p>',
+    '  </div>',
+    '  <div class="update-popup-body" style="padding:32px;">',
+    '    <select id="siteSelectDropdown" style="width:100%;padding:14px 16px;border:2px solid #dde3eb;border-radius:12px;font-size:16px;font-family:inherit;background:#f8f9fc;cursor:pointer;appearance:auto;">' + options + '</select>',
+    '  </div>',
+    '  <div class="update-popup-footer" style="padding:20px 28px;">',
+    '    <button onclick="confirmSiteSelection()" class="update-close-btn" style="width:100%;padding:14px;">확인 / Confirm</button>',
+    '  </div>',
+    '</div>'
+  ].join('');
+  document.body.appendChild(overlay);
+}
+
+function confirmSiteSelection() {
+  var sel = document.getElementById('siteSelectDropdown');
+  if (!sel) return;
+  var site = sel.value;
+  if (window.pywebview && window.pywebview.api && window.pywebview.api.set_site) {
+    window.pywebview.api.set_site(site);
+  }
+  var el = document.getElementById('siteSelectOverlay');
+  if (el) el.remove();
+}
+
 document.addEventListener('DOMContentLoaded', function() {
   var updateChanges = null;
   var isOffline = false;
   var appUpdateVersion = null;
   var appVersion = null;
+
+  var needSiteSelect = false;
+  var sitesList = [];
 
   fetch('update-info.json')
     .then(function(r) { return r.ok ? r.json() : Promise.reject(); })
@@ -1540,6 +1581,7 @@ document.addEventListener('DOMContentLoaded', function() {
       isOffline = !!info.offline;
       appVersion = info.app_version || null;
       if (info.app_update && info.new_version) appUpdateVersion = info.new_version;
+      if (info.need_site_select) { needSiteSelect = true; sitesList = info.sites || []; }
     })
     .catch(function() {});
 
@@ -1550,12 +1592,16 @@ document.addEventListener('DOMContentLoaded', function() {
     .finally(function() {
       renderPortal();
       applyTranslations();
-      setTimeout(function() {
-        showUpdatePopup(updateChanges, isOffline);
-        if (appUpdateVersion) {
-          setTimeout(function() { showAppUpdatePopup(appUpdateVersion); }, 600);
-        }
-      }, 500);
+      if (needSiteSelect && sitesList.length > 0) {
+        showSiteSelector(sitesList);
+      } else {
+        setTimeout(function() {
+          showUpdatePopup(updateChanges, isOffline);
+          if (appUpdateVersion) {
+            setTimeout(function() { showAppUpdatePopup(appUpdateVersion); }, 600);
+          }
+        }, 500);
+      }
       if (appVersion) {
         var badge = document.getElementById('appVerBadge');
         var tag = document.createElement('div');

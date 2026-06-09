@@ -1,21 +1,9 @@
 {
-  "sites": [
-    {"code": "KYK", "name": "한국 (Korea)"},
-    {"code": "KYA", "name": "미주 (Americas)"},
-    {"code": "KYA-MX", "name": "멕시코 (Mexico)"},
-    {"code": "JKY", "name": "일본 (Japan)"},
-    {"code": "KYSEA", "name": "동남아 (Southeast Asia)"},
-    {"code": "KYV", "name": "베트남 (Vietnam)"},
-    {"code": "KYE", "name": "유럽 (Europe)"},
-    {"code": "KYC", "name": "중국 (China)"},
-    {"code": "KYTW", "name": "대만 (Taiwan)"}
-  ],
-  "lastUpdated": "2026-06-08",
+  "lastUpdated": "2026-06-09",
   "notice_ko": "현재까지 검증 완료된 신규 버전입니다. 기존 버전과 상이하다면 다운로드를 진행해주세요.",
   "notice_en": "These are the latest verified versions. If your current version differs, please proceed with the download.",
   "notice_zh": "这些是经过验证的最新版本。如果您当前的版本不同，请进行下载。",
   "notice_ja": "これらは最新の検証済みバージョンです。現在のバージョンが異なる場合は、ダウンロードを進めてください。",
-  "notice_es": "Estas son las últimas versiones verificadas. Si su versión actual es diferente, proceda con la descarga.",
   "software": [
     {
       "id": "aoigui-halcon",
@@ -31,9 +19,7 @@
       "changelog_zh": "Lead - Bridge & Solder fillet: AI Engine Feedback 新开发应用",
       "changelog_ja": "Lead - Bridge & Solder fillet: AI Engine Feedback 新規開発適用",
       "matchPattern": "KY_AOI_",
-      "matchExclude": "(F)",
-      "changelog_es": "Lead - Bridge & Solder fillet: Aplicación de nuevo desarrollo de AI Engine Feedback",
-      "changelog_de": "Lead - Bridge & Solder fillet: Anwendung der neuen AI Engine Feedback-Entwicklung"
+      "matchExclude": "(F)"
     },
     {
       "id": "aoigui-fastred",
@@ -49,9 +35,7 @@
       "changelog_zh": "Lead - Bridge & Solder fillet: AI Engine Feedback 新开发应用",
       "changelog_ja": "Lead - Bridge & Solder fillet: AI Engine Feedback 新規開発適用",
       "matchPattern": "KY_AOI_",
-      "matchRequire": "(F)",
-      "changelog_es": "Lead - Bridge & Solder fillet: Aplicación de nuevo desarrollo de AI Engine Feedback",
-      "changelog_de": "Lead - Bridge & Solder fillet: Anwendung der neuen AI Engine Feedback-Entwicklung"
+      "matchRequire": "(F)"
     },
     {
       "id": "onnx",
@@ -66,9 +50,7 @@
       "changelog_en": "New version",
       "changelog_zh": "新版本",
       "changelog_ja": "新バージョン",
-      "matchPattern": "AOI_Onnx",
-      "changelog_es": "Nueva versión",
-      "changelog_de": "Neue Version"
+      "matchPattern": "AOI_Onnx"
     },
     {
       "id": "aoigui-baselib",
@@ -83,9 +65,7 @@
       "changelog_en": "Use this Base Library when using AOIGUI 2.10 or above",
       "changelog_zh": "使用 AOIGUI 2.10 以上版本时，请使用此 Base Library",
       "changelog_ja": "AOIGUI 2.10 以上を使用する場合、この Base Library を使用すること",
-      "matchPattern": "SMTVision_Base",
-      "changelog_es": "Al usar AOIGUI 2.10 o superior, utilizar esta Base Library",
-      "changelog_de": "Bei Verwendung von AOIGUI 2.10 oder höher diese Base Library verwenden"
+      "matchPattern": "SMTVision_Base"
     },
     {
       "id": "graphic-driver",
@@ -95,14 +75,14 @@
       "category": "vision",
       "link": "https://kohyoung-my.sharepoint.com/:u:/p/vs_aoi_manager/IQCs4v-IGuc8QrFuy-nbx32VAayKRk0xQDbIVNmLvSehT2s?e=RlmI2z",
       "versionName": "580.97-desktop-win10-win11-64bit-international-dch-whql",
-      "date": "2026-06-08",
-      "changelog_ko": "AOIGUi 2.10 이상 버전 사용시, 필수 설치",
-      "changelog_en": "Required installation when using AOIGUI 2.10 or above",
-      "changelog_zh": "使用 AOIGUI 2.10 以上版本时，必须安装",
-      "changelog_ja": "AOIGUI 2.10 以上のバージョン使用時、必須インストール",
+      "date": "2026-06-09",
+      "changelog_ko": "AOIGUI 2.10 이상 버전 사용시, 필수 설치",
+      "changelog_en": "",
+      "changelog_zh": "",
+      "changelog_ja": "",
       "matchPattern": "desktop",
-      "changelog_es": "Instalación obligatoria al usar AOIGUI 2.10 o superior",
-      "changelog_de": "Pflichtinstallation bei Verwendung von AOIGUI 2.10 oder höher"
+      "changelog_es": "",
+      "changelog_de": ""
     },
     {
       "id": "review-station",
@@ -117,9 +97,7 @@
       "changelog_en": "",
       "changelog_zh": "",
       "changelog_ja": "",
-      "matchPattern": "Review_",
-      "changelog_es": "",
-      "changelog_de": ""
+      "matchPattern": "Review_"
     },
     {
       "id": "ai-smartgate",
@@ -134,9 +112,7 @@
       "changelog_en": "",
       "changelog_zh": "",
       "changelog_ja": "",
-      "matchPattern": "AISmartGate",
-      "changelog_es": "",
-      "changelog_de": ""
+      "matchPattern": "AISmartGate"
     },
     {
       "id": "srocv",
@@ -151,9 +127,7 @@
       "changelog_en": "",
       "changelog_zh": "",
       "changelog_ja": "",
-      "matchPattern": "srocv",
-      "changelog_es": "",
-      "changelog_de": ""
+      "matchPattern": "srocv"
     },
     {
       "id": "ai-modelmgmt",
@@ -168,13 +142,10 @@
       "changelog_en": "",
       "changelog_zh": "",
       "changelog_ja": "",
-      "matchPattern": "AIModelManagementTool",
-      "changelog_es": "",
-      "changelog_de": ""
+      "matchPattern": "AIModelManagementTool"
     }
   ],
   "app_version": "1.0.0",
   "app_download_url": "",
-  "history": [],
-  "notice_de": "Dies sind die neuesten verifizierten Versionen. Wenn Ihre aktuelle Version abweicht, fahren Sie bitte mit dem Download fort."
+  "history": []
 }
