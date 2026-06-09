@@ -4,6 +4,7 @@
   "notice_en": "These are the latest verified versions. If your current version differs, please proceed with the download.",
   "notice_zh": "这些是经过验证的最新版本。如果您当前的版本不同，请进行下载。",
   "notice_ja": "これらは最新の検証済みバージョンです。現在のバージョンが異なる場合は、ダウンロードを進めてください。",
+  "notice_es": "Estas son las últimas versiones verificadas. Si su versión actual es diferente, proceda con la descarga.",
   "software": [
     {
       "id": "aoigui-halcon",
@@ -19,7 +20,8 @@
       "changelog_zh": "Lead - Bridge & Solder fillet: AI Engine Feedback 新开发应用",
       "changelog_ja": "Lead - Bridge & Solder fillet: AI Engine Feedback 新規開発適用",
       "matchPattern": "KY_AOI_",
-      "matchExclude": "(F)"
+      "matchExclude": "(F)",
+      "changelog_es": "Lead - Bridge & Solder fillet: Aplicación de nuevo desarrollo de AI Engine Feedback"
     },
     {
       "id": "aoigui-fastred",
@@ -35,7 +37,8 @@
       "changelog_zh": "Lead - Bridge & Solder fillet: AI Engine Feedback 新开发应用",
       "changelog_ja": "Lead - Bridge & Solder fillet: AI Engine Feedback 新規開発適用",
       "matchPattern": "KY_AOI_",
-      "matchRequire": "(F)"
+      "matchRequire": "(F)",
+      "changelog_es": "Lead - Bridge & Solder fillet: Aplicación de nuevo desarrollo de AI Engine Feedback"
     },
     {
       "id": "onnx",
@@ -50,7 +53,8 @@
       "changelog_en": "New version",
       "changelog_zh": "新版本",
       "changelog_ja": "新バージョン",
-      "matchPattern": "AOI_Onnx"
+      "matchPattern": "AOI_Onnx",
+      "changelog_es": "Nueva versión"
     },
     {
       "id": "aoigui-baselib",
@@ -65,7 +69,8 @@
       "changelog_en": "Use this Base Library when using AOIGUI 2.10 or above",
       "changelog_zh": "使用 AOIGUI 2.10 以上版本时，请使用此 Base Library",
       "changelog_ja": "AOIGUI 2.10 以上を使用する場合、この Base Library を使用すること",
-      "matchPattern": "SMTVision_Base"
+      "matchPattern": "SMTVision_Base",
+      "changelog_es": "Al usar AOIGUI 2.10 o superior, utilizar esta Base Library"
     },
     {
       "id": "graphic-driver",
@@ -80,7 +85,8 @@
       "changelog_en": "Required installation when using AOIGUI 2.10 or above",
       "changelog_zh": "使用 AOIGUI 2.10 以上版本时，必须安装",
       "changelog_ja": "AOIGUI 2.10 以上のバージョン使用時、必須インストール",
-      "matchPattern": "desktop"
+      "matchPattern": "desktop",
+      "changelog_es": "Instalación obligatoria al usar AOIGUI 2.10 o superior"
     },
     {
       "id": "review-station",
@@ -95,7 +101,8 @@
       "changelog_en": "",
       "changelog_zh": "",
       "changelog_ja": "",
-      "matchPattern": "Review_"
+      "matchPattern": "Review_",
+      "changelog_es": ""
     },
     {
       "id": "ai-smartgate",
@@ -110,7 +117,8 @@
       "changelog_en": "",
       "changelog_zh": "",
       "changelog_ja": "",
-      "matchPattern": "AISmartGate"
+      "matchPattern": "AISmartGate",
+      "changelog_es": ""
     },
     {
       "id": "srocv",
@@ -125,7 +133,8 @@
       "changelog_en": "",
       "changelog_zh": "",
       "changelog_ja": "",
-      "matchPattern": "srocv"
+      "matchPattern": "srocv",
+      "changelog_es": ""
     },
     {
       "id": "ai-modelmgmt",
@@ -140,7 +149,8 @@
       "changelog_en": "",
       "changelog_zh": "",
       "changelog_ja": "",
-      "matchPattern": "AIModelManagementTool"
+      "matchPattern": "AIModelManagementTool",
+      "changelog_es": ""
     }
   ],
   "app_version": "1.0.0",

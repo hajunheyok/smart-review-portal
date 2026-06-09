@@ -595,6 +595,33 @@ var UI_TRANSLATIONS = {
     historyEmpty: "変更履歴はありません。",
     historyVersion: "バージョン", historyNew: "新規", historyLink: "リンク",
     historyChangelog: "変更履歴", historyNotice: "お知らせ", historyRemoved: "削除"
+  },
+  es: {
+    title: "Smart Review Portal de Versiones",
+    subtitle: "Centro de Distribución de Software AI Smart Review",
+    sectionOverview: "🔍 Resumen de Versiones — Verificación Rápida",
+    hintMain: "¿Su versión es diferente a la mostrada arriba?\nDescargue la última versión a continuación.",
+    hintSub: "Haga clic en el botón de descarga del software que necesita actualizar.",
+    sectionDownload: "📦 Descargas",
+    btnDownload: "⬇ Descargar",
+    btnCompare: "🔄 Comparar Mis Versiones — Arrastre y suelte sus archivos",
+    dropMain: "Arrastre y suelte sus archivos SW aquí",
+    dropSub: "Suelte archivos o una carpeta — los nombres se emparejan automáticamente",
+    dropHint: "Los archivos NO se cargan. Solo se leen los nombres en su navegador.",
+    noteTitle: "📌 Notas",
+    note1: "Si la descarga no está disponible, contacte al equipo AES.",
+    note2: "AOIGUI Base Library debe instalarse tanto en Vision PC como en Review PC.",
+    note3: "Contacto: AES Team",
+    compareNote: "Los archivos NO se cargan — solo se leen los nombres en su navegador para comparación.",
+    good: "Good", update: "Update", notFound: "Not Found",
+    goToDownload: "Ir a Descarga", recompare: "Volver a comparar",
+    updatedLabel: "Última Actualización:", managedBy: "AES Team | Jace.Ha",
+    detected: "Archivos Detectados", close: "Cerrar", closeResults: "Cerrar resultados de comparación",
+    upToDate: "Actualizado", updateNeeded: "Actualización necesaria",
+    historyTitle: "📜 Historial de Cambios",
+    historyEmpty: "No hay historial de cambios.",
+    historyVersion: "VERSIÓN", historyNew: "NUEVO", historyLink: "ENLACE",
+    historyChangelog: "CAMBIOS", historyNotice: "AVISO", historyRemoved: "ELIMINADO"
   }
 };
 
@@ -654,16 +681,20 @@ function renderPortal() {
     '    <div class="logo-area">',
     '      <div class="logo-icon">KY</div>',
     '      <div class="logo-text">',
-    '        <h1 id="portal-title">Smart Review Version Portal</h1>',
+    '        <div style="display:flex;align-items:center;gap:10px;">',
+    '          <h1 id="portal-title">Smart Review Version Portal</h1>',
+    '          <span id="appVerBadge" style="display:none;font-size:12px;font-weight:600;padding:3px 10px;border-radius:12px;white-space:nowrap;"></span>',
+    '        </div>',
     '        <p id="portal-subtitle">AI Smart Review Software Distribution Center</p>',
     '      </div>',
     '    </div>',
     '    <div class="header-right">',
     '      <div class="lang-switcher" id="langSwitcher">',
-    '        <button class="lang-btn" data-lang="en"  onclick="switchLang(\'en\')">EN</button>',
-    '        <button class="lang-btn" data-lang="ko"  onclick="switchLang(\'ko\')">한국어</button>',
-    '        <button class="lang-btn" data-lang="zh"  onclick="switchLang(\'zh\')">中文</button>',
-    '        <button class="lang-btn" data-lang="ja"  onclick="switchLang(\'ja\')">日本語</button>',
+    '        <button class="lang-btn" data-lang="en"  onclick="switchLang(\'en\')">🇺🇸 EN</button>',
+    '        <button class="lang-btn" data-lang="ko"  onclick="switchLang(\'ko\')">🇰🇷 한국어</button>',
+    '        <button class="lang-btn" data-lang="zh"  onclick="switchLang(\'zh\')">🇨🇳 中文</button>',
+    '        <button class="lang-btn" data-lang="ja"  onclick="switchLang(\'ja\')">🇯🇵 日本語</button>',
+    '        <button class="lang-btn" data-lang="es"  onclick="switchLang(\'es\')">🇪🇸 Español</button>',
     '      </div>',
     '      <div class="last-updated" id="lastUpdatedBlock">',
     '        Last Updated: <span id="lastUpdatedDate">' + esc(d.lastUpdated) + '</span><br>',
@@ -1292,7 +1323,8 @@ var BATCH_LABELS = {
   en: { selectAll: 'Select All', selected: 'selected', batchDl: 'Batch Download' },
   ko: { selectAll: '전체 선택', selected: '선택됨', batchDl: '일괄 다운로드' },
   zh: { selectAll: '全选', selected: '已选', batchDl: '批量下载' },
-  ja: { selectAll: '全選択', selected: '選択済み', batchDl: '一括ダウンロード' }
+  ja: { selectAll: '全選択', selected: '選択済み', batchDl: '一括ダウンロード' },
+  es: { selectAll: 'Seleccionar Todo', selected: 'seleccionados', batchDl: 'Descarga Masiva' }
 };
 
 function toggleSelectAll(masterCb) {
@@ -1335,7 +1367,8 @@ var APP_UPDATE_LABELS = {
   en: { title: 'New Version Available', msg: 'A new version (v{ver}) has been downloaded.\nWould you like to restart?', restart: 'Restart Now', later: 'Later' },
   ko: { title: '새 버전 사용 가능', msg: '새 버전(v{ver})이 다운로드되었습니다.\n재시작하시겠습니까?', restart: '지금 재시작', later: '나중에' },
   zh: { title: '新版本可用', msg: '新版本(v{ver})已下载完成。\n是否重启？', restart: '立即重启', later: '稍后' },
-  ja: { title: '新バージョン利用可能', msg: '新バージョン(v{ver})がダウンロードされました。\n再起動しますか？', restart: '今すぐ再起動', later: '後で' }
+  ja: { title: '新バージョン利用可能', msg: '新バージョン(v{ver})がダウンロードされました。\n再起動しますか？', restart: '今すぐ再起動', later: '後で' },
+  es: { title: 'Nueva Versión Disponible', msg: 'Se ha descargado una nueva versión (v{ver}).\n¿Desea reiniciar?', restart: 'Reiniciar Ahora', later: 'Más Tarde' }
 };
 
 function showAppUpdatePopup(newVersion) {
@@ -1404,6 +1437,13 @@ var UPDATE_LABELS = {
     offlineTitle: 'インターネット未接続',
     offlineMsg: 'インターネットの接続状態をご確認ください。\n最新情報が反映されていません。',
     close: '確認'
+  },
+  es: {
+    title: 'Actualización Detectada',
+    msg: 'Hay elementos actualizados.\nPor favor, compare sus versiones.',
+    offlineTitle: 'Sin Conexión a Internet',
+    offlineMsg: 'Verifique su conexión a Internet.\nLa información más reciente no se refleja.',
+    close: 'Aceptar'
   }
 };
 
@@ -1454,12 +1494,14 @@ document.addEventListener('DOMContentLoaded', function() {
   var updateChanges = null;
   var isOffline = false;
   var appUpdateVersion = null;
+  var appVersion = null;
 
   fetch('update-info.json')
     .then(function(r) { return r.ok ? r.json() : Promise.reject(); })
     .then(function(info) {
       updateChanges = info.changes || [];
       isOffline = !!info.offline;
+      appVersion = info.app_version || null;
       if (info.app_update && info.new_version) appUpdateVersion = info.new_version;
     })
     .catch(function() {});
@@ -1477,6 +1519,23 @@ document.addEventListener('DOMContentLoaded', function() {
           setTimeout(function() { showAppUpdatePopup(appUpdateVersion); }, 600);
         }
       }, 500);
+      if (appVersion) {
+        var badge = document.getElementById('appVerBadge');
+        var tag = document.createElement('div');
+        tag.id = 'appVerFooter';
+        tag.style.cssText = 'position:fixed;bottom:8px;right:12px;font-size:11px;color:#b0b8cc;z-index:10;';
+        if (appUpdateVersion) {
+          badge.textContent = 'v' + appVersion + ' → v' + appUpdateVersion;
+          badge.style.cssText += 'background:rgba(251,191,36,0.25);color:#fbbf24;border:1px solid rgba(251,191,36,0.4);display:inline;';
+          tag.textContent = 'v' + appVersion + ' (update available: v' + appUpdateVersion + ')';
+          tag.style.color = '#f59e0b';
+        } else {
+          badge.textContent = 'v' + appVersion + ' ✓';
+          badge.style.cssText += 'background:rgba(74,222,128,0.2);color:#4ade80;border:1px solid rgba(74,222,128,0.35);display:inline;';
+          tag.textContent = 'v' + appVersion;
+        }
+        document.body.appendChild(tag);
+      }
     });
 });
 </script>
