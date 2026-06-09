@@ -39,24 +39,28 @@ def load_config():
     return {}
 
 
+GITHUB_DATA_URL = "https://hajunheyok.github.io/smart-review-portal/portal-data.json"
+
+
 def fetch_remote_data(config):
     """
-    Fetch portal-data.json from the configured server URL.
-    Returns parsed dict or None on failure.
+    Fetch portal-data.json. Try internal server first, fall back to GitHub Pages.
     """
-    data_url = config.get("data_url", "")
+    urls = [config.get("data_url", ""), GITHUB_DATA_URL]
 
-    if not data_url:
-        return None
+    for url in urls:
+        if not url:
+            continue
+        try:
+            resp = requests.get(url, timeout=5, allow_redirects=True)
+            resp.raise_for_status()
+            data = resp.json()
+            save_cache(data)
+            return data
+        except Exception:
+            continue
 
-    try:
-        resp = requests.get(data_url, timeout=10, allow_redirects=True)
-        resp.raise_for_status()
-        data = resp.json()
-        save_cache(data)
-        return data
-    except Exception:
-        return None
+    return None
 
 
 def save_cache(data):
