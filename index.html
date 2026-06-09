@@ -227,6 +227,29 @@
     box-shadow: none; opacity: 0.65; pointer-events: none;
   }
 
+  /* Batch download toolbar */
+  .batch-toolbar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 18px; margin-bottom: 12px; background: #fff;
+    border: 1px solid #dde3eb; border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  }
+  .batch-left { display: flex; align-items: center; gap: 10px; }
+  .batch-left label { font-size: 13px; font-weight: 600; color: #4a5a8a; cursor: pointer; display: flex; align-items: center; gap: 6px; }
+  .batch-left input[type="checkbox"] { width: 16px; height: 16px; accent-color: #4a5a8a; cursor: pointer; }
+  .batch-count { font-size: 12px; color: #94a3b8; margin-left: 4px; }
+  .batch-btn {
+    background: linear-gradient(135deg, #4a5a8a, #5e4d7a); color: white;
+    border: none; padding: 9px 20px; border-radius: 8px; font-size: 13px;
+    font-weight: 600; cursor: pointer; transition: all 0.2s;
+    box-shadow: 0 2px 8px rgba(74,90,138,0.25);
+  }
+  .batch-btn:hover { transform: scale(1.03); box-shadow: 0 4px 16px rgba(74,90,138,0.35); }
+  .batch-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+  /* Checkbox in sw-card */
+  .sw-check { width: 16px; height: 16px; accent-color: #4a5a8a; cursor: pointer; flex-shrink: 0; margin-right: 4px; }
+
   .note-section {
     background: #fff; border: 1px solid #dde3eb; border-radius: 14px;
     padding: 20px 24px; margin-top: 32px; box-shadow: 0 1px 3px rgba(0,0,0,0.04);
@@ -236,6 +259,39 @@
   .note-section li { color: #64748b; font-size: 13px; padding: 5px 0; padding-left: 16px; position: relative; }
   .note-section li::before { content: "•"; color: #4a5a8a; position: absolute; left: 0; font-weight: bold; }
   .footer { text-align: center; padding: 32px; color: #8a94a6; font-size: 12px; border-top: 1px solid #d4d9e2; margin-top: 40px; }
+
+  /* === CHANGE HISTORY === */
+  .history-section {
+    background: #fff; border: 1px solid #dde3eb; border-radius: 14px;
+    padding: 0; margin-top: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); overflow: hidden;
+  }
+  .history-toggle {
+    width: 100%; background: none; border: none; padding: 16px 24px;
+    display: flex; align-items: center; justify-content: space-between;
+    cursor: pointer; font-size: 15px; font-weight: 700; color: #1e293b;
+    transition: background 0.15s;
+  }
+  .history-toggle:hover { background: #f8f9fc; }
+  .history-toggle .toggle-arrow { font-size: 12px; color: #8a94a6; transition: transform 0.2s; }
+  .history-toggle .toggle-arrow.open { transform: rotate(180deg); }
+  .history-list { display: none; border-top: 1px solid #f1f5f9; padding: 8px 24px 16px; max-height: 400px; overflow-y: auto; }
+  .history-list.open { display: block; }
+  .history-entry { padding: 12px 0; border-bottom: 1px solid #f8f9fc; }
+  .history-entry:last-child { border-bottom: none; }
+  .history-date { font-size: 13px; font-weight: 700; color: #4a5a8a; margin-bottom: 6px; }
+  .history-change { font-size: 12.5px; color: #475569; padding: 3px 0 3px 16px; position: relative; }
+  .history-change::before { content: "•"; position: absolute; left: 2px; color: #9ba4d4; font-weight: bold; }
+  .change-type {
+    display: inline-block; font-size: 10px; font-weight: 600; padding: 2px 8px;
+    border-radius: 4px; margin-right: 6px; text-transform: uppercase;
+  }
+  .change-type.version { background: #eef0f7; color: #4a4a8a; }
+  .change-type.new-sw { background: #dcfce7; color: #16a34a; }
+  .change-type.link { background: #fef3c7; color: #a16207; }
+  .change-type.changelog { background: #e0f2fe; color: #0369a1; }
+  .change-type.notice { background: #f3e8ff; color: #7c3aed; }
+  .change-type.removed { background: #fee2e2; color: #dc2626; }
+  .history-empty { font-size: 13px; color: #8a94a6; padding: 12px 0; text-align: center; }
 
   /* === UPDATE POPUP === */
   .update-overlay {
@@ -451,7 +507,11 @@ var UI_TRANSLATIONS = {
     goToDownload: "Go to Download", recompare: "Re-compare",
     updatedLabel: "Last Updated:", managedBy: "AES Team | Jace.Ha",
     detected: "Detected Files", close: "Close", closeResults: "Close comparison results",
-    upToDate: "Up to date", updateNeeded: "Update needed"
+    upToDate: "Up to date", updateNeeded: "Update needed",
+    historyTitle: "📜 Change History",
+    historyEmpty: "No change history yet.",
+    historyVersion: "VERSION", historyNew: "NEW", historyLink: "LINK",
+    historyChangelog: "CHANGELOG", historyNotice: "NOTICE", historyRemoved: "REMOVED"
   },
   ko: {
     title: "스마트 리뷰 버전 포털",
@@ -474,7 +534,11 @@ var UI_TRANSLATIONS = {
     goToDownload: "다운로드로 이동", recompare: "다시 비교",
     updatedLabel: "최종 업데이트:", managedBy: "AES팀 | Jace.Ha",
     detected: "감지된 파일", close: "닫기", closeResults: "비교 결과 닫기",
-    upToDate: "최신 상태", updateNeeded: "업데이트 필요"
+    upToDate: "최신 상태", updateNeeded: "업데이트 필요",
+    historyTitle: "📜 변경 이력",
+    historyEmpty: "변경 이력이 없습니다.",
+    historyVersion: "버전", historyNew: "신규", historyLink: "링크",
+    historyChangelog: "변경내역", historyNotice: "공지", historyRemoved: "제거"
   },
   zh: {
     title: "Smart Review 版本中心",
@@ -497,7 +561,11 @@ var UI_TRANSLATIONS = {
     goToDownload: "前往下载", recompare: "重新比较",
     updatedLabel: "最后更新:", managedBy: "AES Team | Jace.Ha",
     detected: "检测到的文件", close: "关闭", closeResults: "关闭比较结果",
-    upToDate: "已是最新", updateNeeded: "需要更新"
+    upToDate: "已是最新", updateNeeded: "需要更新",
+    historyTitle: "📜 变更记录",
+    historyEmpty: "暂无变更记录。",
+    historyVersion: "版本", historyNew: "新增", historyLink: "链接",
+    historyChangelog: "更新日志", historyNotice: "公告", historyRemoved: "移除"
   },
   ja: {
     title: "Smart Review バージョンポータル",
@@ -520,7 +588,11 @@ var UI_TRANSLATIONS = {
     goToDownload: "ダウンロードへ", recompare: "再比較",
     updatedLabel: "最終更新:", managedBy: "AES Team | Jace.Ha",
     detected: "検出されたファイル", close: "閉じる", closeResults: "比較結果を閉じる",
-    upToDate: "最新です", updateNeeded: "更新が必要"
+    upToDate: "最新です", updateNeeded: "更新が必要",
+    historyTitle: "📜 変更履歴",
+    historyEmpty: "変更履歴はありません。",
+    historyVersion: "バージョン", historyNew: "新規", historyLink: "リンク",
+    historyChangelog: "変更履歴", historyNotice: "お知らせ", historyRemoved: "削除"
   }
 };
 
@@ -717,9 +789,12 @@ function renderPortal() {
       dlBtn = '<a class="download-btn disabled" href="#" onclick="return false;" aria-disabled="true">⬇ Download</a>';
     }
 
+    var chk = sw.link ? '<input type="checkbox" class="sw-check" data-id="' + esc(sw.id) + '" data-link="' + esc(sw.link) + '" onchange="updateBatchCount()">' : '';
+
     return [
       '<div class="sw-card" id="dl-' + esc(sw.id) + '">',
       '  <div class="sw-info">',
+      '    ' + chk,
       '    <div class="sw-icon ' + esc(sw.iconClass) + '">' + sw.icon + '</div>',
       '    <div class="sw-text">',
       '      <div class="sw-details">',
@@ -738,9 +813,19 @@ function renderPortal() {
     ].join('\n');
   }).join('\n');
 
+  var batchLabels = BATCH_LABELS[currentLang] || BATCH_LABELS['en'];
+  var totalDl = d.software.filter(function(s) { return !!s.link; }).length;
+
   var downloadsHTML = [
     '<hr class="divider">',
     '<div class="section-title" id="downloadsTitle">📦 Downloads</div>',
+    '<div class="batch-toolbar" id="batchToolbar">',
+    '  <div class="batch-left">',
+    '    <label><input type="checkbox" id="selectAllCheck" onchange="toggleSelectAll(this)"> <span id="selectAllLabel">' + esc(batchLabels.selectAll) + '</span></label>',
+    '    <span class="batch-count" id="batchCount">0/' + totalDl + ' ' + esc(batchLabels.selected) + '</span>',
+    '  </div>',
+    '  <button class="batch-btn" id="batchDlBtn" disabled onclick="batchDownload()">⬇ <span id="batchDlLabel">' + esc(batchLabels.batchDl) + '</span></button>',
+    '</div>',
     '<div class="sw-grid" id="swGrid">',
     swCardsHTML,
     '</div>'
@@ -758,6 +843,9 @@ function renderPortal() {
     '</div>'
   ].join('\n');
 
+  // ── HISTORY ──────────────────────────────────────────────────
+  var historyHTML = renderHistory();
+
   // ── FOOTER ──────────────────────────────────────────────────
   var footerHTML = '<div class="footer" id="pageFooter">© 2026 KohYoung Technology — AES Team &nbsp;|&nbsp; Smart Review Version Portal v1.0</div>';
 
@@ -770,6 +858,7 @@ function renderPortal() {
     hintHTML,
     downloadsHTML,
     notesHTML,
+    historyHTML,
     '</div>',
     footerHTML
   ].join('\n');
@@ -856,6 +945,12 @@ function applyTranslations() {
   var countEl = document.getElementById('detectedCount');
   var count = countEl ? countEl.textContent : '0';
   setHTML('detectedTitle', '📎 ' + esc(t.detected) + ' (<span id="detectedCount">' + count + '</span>)');
+
+  // Batch download toolbar
+  var bl = BATCH_LABELS[currentLang] || BATCH_LABELS['en'];
+  setText('selectAllLabel', bl.selectAll);
+  setText('batchDlLabel', bl.batchDl);
+  updateBatchCount();
 }
 
 // ─── Compare helpers ──────────────────────────────────────────
@@ -1124,6 +1219,56 @@ function renderCompareResults(fileNames, results) {
   if (noteEl) noteEl.textContent = t.compareNote;
 }
 
+// ─── Change History ───────────────────────────────────────────
+function renderHistory() {
+  var t = UI_TRANSLATIONS[currentLang] || UI_TRANSLATIONS['en'];
+  var history = PORTAL_DATA.history;
+  if (!history || history.length === 0) return '';
+
+  var typeClassMap = {
+    version: 'version', 'new': 'new-sw', link: 'link',
+    changelog: 'changelog', notice: 'notice', removed: 'removed'
+  };
+  var typeLabelMap = {
+    version: 'historyVersion', 'new': 'historyNew', link: 'historyLink',
+    changelog: 'historyChangelog', notice: 'historyNotice', removed: 'historyRemoved'
+  };
+
+  var entriesHTML = history.map(function(entry) {
+    var changesHTML = entry.changes.map(function(c) {
+      var cls = typeClassMap[c.type] || 'version';
+      var label = t[typeLabelMap[c.type] || 'historyVersion'] || c.type;
+      var detail = '';
+      if (c.type === 'version' && c.old && c['new']) {
+        detail = ' — ' + esc(c.old) + ' → ' + esc(c['new']);
+      }
+      return '<div class="history-change"><span class="change-type ' + cls + '">' +
+        esc(label) + '</span>' + esc(c.name) + detail + '</div>';
+    }).join('');
+    return '<div class="history-entry"><div class="history-date">' +
+      esc(entry.date) + '</div>' + changesHTML + '</div>';
+  }).join('');
+
+  return [
+    '<div class="history-section" id="historySection">',
+    '  <button class="history-toggle" onclick="toggleHistory()">',
+    '    <span id="historyTitle">' + esc(t.historyTitle) + ' (' + history.length + ')</span>',
+    '    <span class="toggle-arrow" id="historyArrow">▼</span>',
+    '  </button>',
+    '  <div class="history-list" id="historyList">' + entriesHTML + '</div>',
+    '</div>'
+  ].join('\n');
+}
+
+function toggleHistory() {
+  var list = document.getElementById('historyList');
+  var arrow = document.getElementById('historyArrow');
+  if (list) {
+    list.classList.toggle('open');
+    if (arrow) arrow.classList.toggle('open');
+  }
+}
+
 // ─── scrollToDl ───────────────────────────────────────────────
 function scrollToDl(id) {
   if (typeof event !== 'undefined' && event) event.preventDefault();
@@ -1137,6 +1282,94 @@ function scrollToDl(id) {
       el.style.boxShadow = '';
       el.style.borderColor = '';
     }, 2000);
+  }
+}
+
+// ─── Batch Download Labels ───────────────────────────────────
+var BATCH_LABELS = {
+  en: { selectAll: 'Select All', selected: 'selected', batchDl: 'Batch Download' },
+  ko: { selectAll: '전체 선택', selected: '선택됨', batchDl: '일괄 다운로드' },
+  zh: { selectAll: '全选', selected: '已选', batchDl: '批量下载' },
+  ja: { selectAll: '全選択', selected: '選択済み', batchDl: '一括ダウンロード' }
+};
+
+function toggleSelectAll(masterCb) {
+  var checks = document.querySelectorAll('.sw-check');
+  for (var i = 0; i < checks.length; i++) checks[i].checked = masterCb.checked;
+  updateBatchCount();
+}
+
+function updateBatchCount() {
+  var checks = document.querySelectorAll('.sw-check');
+  var checked = document.querySelectorAll('.sw-check:checked');
+  var total = checks.length;
+  var count = checked.length;
+  var lbl = BATCH_LABELS[currentLang] || BATCH_LABELS['en'];
+  var countEl = document.getElementById('batchCount');
+  if (countEl) countEl.textContent = count + '/' + total + ' ' + lbl.selected;
+  var btn = document.getElementById('batchDlBtn');
+  if (btn) btn.disabled = count === 0;
+  var master = document.getElementById('selectAllCheck');
+  if (master) master.checked = count === total && total > 0;
+}
+
+function batchDownload() {
+  var checked = document.querySelectorAll('.sw-check:checked');
+  if (checked.length === 0) return;
+  var links = [];
+  for (var i = 0; i < checked.length; i++) links.push(checked[i].getAttribute('data-link'));
+  var idx = 0;
+  function openNext() {
+    if (idx >= links.length) return;
+    window.open(links[idx], '_blank');
+    idx++;
+    if (idx < links.length) setTimeout(openNext, 600);
+  }
+  openNext();
+}
+
+// ─── App Update Popup ────────────────────────────────────────
+var APP_UPDATE_LABELS = {
+  en: { title: 'New Version Available', msg: 'A new version (v{ver}) has been downloaded.\nWould you like to restart?', restart: 'Restart Now', later: 'Later' },
+  ko: { title: '새 버전 사용 가능', msg: '새 버전(v{ver})이 다운로드되었습니다.\n재시작하시겠습니까?', restart: '지금 재시작', later: '나중에' },
+  zh: { title: '新版本可用', msg: '新版本(v{ver})已下载完成。\n是否重启？', restart: '立即重启', later: '稍后' },
+  ja: { title: '新バージョン利用可能', msg: '新バージョン(v{ver})がダウンロードされました。\n再起動しますか？', restart: '今すぐ再起動', later: '後で' }
+};
+
+function showAppUpdatePopup(newVersion) {
+  var t = APP_UPDATE_LABELS[currentLang] || APP_UPDATE_LABELS['en'];
+  var msg = t.msg.replace('{ver}', newVersion);
+  var overlay = document.createElement('div');
+  overlay.className = 'update-overlay';
+  overlay.id = 'appUpdateOverlay';
+  overlay.innerHTML = [
+    '<div class="update-popup">',
+    '  <div class="update-popup-header">',
+    '    <div class="popup-icon">🚀</div>',
+    '    <h2>' + esc(t.title) + '</h2>',
+    '  </div>',
+    '  <div class="update-popup-body">',
+    '    <div class="update-popup-msg">' + esc(msg).replace(/\n/g, '<br>') + '</div>',
+    '  </div>',
+    '  <div class="update-popup-footer" style="display:flex;gap:10px;justify-content:center;">',
+    '    <button class="update-close-btn" style="background:linear-gradient(135deg,#4a5a8a,#5e4d7a);color:white;" onclick="restartForUpdate()">' + esc(t.restart) + '</button>',
+    '    <button class="update-close-btn" onclick="closeAppUpdatePopup()">' + esc(t.later) + '</button>',
+    '  </div>',
+    '</div>'
+  ].join('');
+  document.body.appendChild(overlay);
+}
+
+function closeAppUpdatePopup() {
+  var el = document.getElementById('appUpdateOverlay');
+  if (el) el.remove();
+}
+
+function restartForUpdate() {
+  if (window.pywebview && window.pywebview.api) {
+    window.pywebview.api.restart_for_update();
+  } else {
+    closeAppUpdatePopup();
   }
 }
 
@@ -1218,10 +1451,15 @@ function closeUpdatePopup() {
 document.addEventListener('DOMContentLoaded', function() {
   var updateChanges = null;
   var isOffline = false;
+  var appUpdateVersion = null;
 
   fetch('update-info.json')
     .then(function(r) { return r.ok ? r.json() : Promise.reject(); })
-    .then(function(info) { updateChanges = info.changes || []; isOffline = !!info.offline; })
+    .then(function(info) {
+      updateChanges = info.changes || [];
+      isOffline = !!info.offline;
+      if (info.app_update && info.new_version) appUpdateVersion = info.new_version;
+    })
     .catch(function() {});
 
   fetch('portal-data.json')
@@ -1231,7 +1469,12 @@ document.addEventListener('DOMContentLoaded', function() {
     .finally(function() {
       renderPortal();
       applyTranslations();
-      setTimeout(function() { showUpdatePopup(updateChanges, isOffline); }, 500);
+      setTimeout(function() {
+        showUpdatePopup(updateChanges, isOffline);
+        if (appUpdateVersion) {
+          setTimeout(function() { showAppUpdatePopup(appUpdateVersion); }, 600);
+        }
+      }, 500);
     });
 });
 </script>

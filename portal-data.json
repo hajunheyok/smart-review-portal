@@ -4,11 +4,6 @@
   "notice_en": "These are the latest verified versions. If your current version differs, please proceed with the download.",
   "notice_zh": "这些是经过验证的最新版本。如果您当前的版本不同，请进行下载。",
   "notice_ja": "これらは最新の検証済みバージョンです。現在のバージョンが異なる場合は、ダウンロードを進めてください。",
-  "ui_overrides": {
-    "ja": {
-      "dropSub": "ファイルまたはフォルダをドロップすると、ファイル名が自動マッチングされます。"
-    }
-  },
   "software": [
     {
       "id": "aoigui-halcon",
@@ -17,7 +12,7 @@
       "iconClass": "blue",
       "category": "vision",
       "link": "https://kohyoung-my.sharepoint.com/:u:/p/sw_distmgt/IQAwYdV9vTZGQpP_FnnIzJQ1Aadfru4_zh_FtnZkw6x3o3I?e=nbEpJa",
-      "versionName": "KY_AOI_2.10.2.0-52-g906169a6f5c(B_v1.0.0.0)",
+      "versionName": "IQAwYdV9vTZGQpP_FnnIzJQ1Aadfru4_zh_FtnZkw6x3o3I",
       "date": "2026-06-08",
       "changelog_ko": "Lead - Bridge & Solder fillet : AI Engine Feedback 신규 개발 적용",
       "changelog_en": "Lead - Bridge & Solder fillet: New AI Engine Feedback development applied",
@@ -64,7 +59,7 @@
       "iconClass": "cyan",
       "category": "both",
       "link": "https://kohyoung-my.sharepoint.com/:u:/p/vs_aoi_manager/IQBY6ZPygjSlRrPCl3VEIqIOAT_Y9_F_E7Si6TSuhIKKDsE?e=bbXggR",
-      "versionName": "SMTVision_Base_Library_v1.0.0.0",
+      "versionName": "IQBY6ZPygjSlRrPCl3VEIqIOAT_Y9_F_E7Si6TSuhIKKDsE",
       "date": "",
       "changelog_ko": "AOIGUI 2.10 이상 사용 시, 해당 Base Library 사용할 것",
       "changelog_en": "Use this Base Library when using AOIGUI 2.10 or above",
@@ -94,7 +89,7 @@
       "iconClass": "green",
       "category": "review",
       "link": "https://kohyoung-my.sharepoint.com/:u:/p/sw_distmgt/IQAOmYqUXUYiQZY-LooZ9PtGAR4EKkkhHfhyrj_h7vJBqN4?e=hhoU8B",
-      "versionName": "Review_3.4.3.6(837715326)",
+      "versionName": "IQAOmYqUXUYiQZY-LooZ9PtGAR4EKkkhHfhyrj_h7vJBqN4",
       "date": "2026-06-08",
       "changelog_ko": "",
       "changelog_en": "",
@@ -124,7 +119,7 @@
       "iconClass": "red",
       "category": "review",
       "link": "https://kohyoung-my.sharepoint.com/:u:/p/cm_lim/IQBefbcsimGnSKZG2evMpTmQAZMd_gQ0BOnGsfTrGyFIils?e=G0B0e1",
-      "versionName": "srocv.python_03_10_ocv_BodyFM_multi_v03_N_qdm",
+      "versionName": "IQBefbcsimGnSKZG2evMpTmQAZMd_gQ0BOnGsfTrGyFIils",
       "date": "2026-06-08",
       "changelog_ko": "",
       "changelog_en": "",
@@ -146,6 +141,38 @@
       "changelog_zh": "",
       "changelog_ja": "",
       "matchPattern": "AIModelManagementTool"
+    }
+  ],
+  "history": [
+    {
+      "date": "2026-06-09",
+      "timestamp": "2026-06-09T17:07:23",
+      "changes": [
+        {
+          "name": "AOIGUI - Halcon",
+          "type": "version",
+          "old": "KY_AOI_2.10.2.0-52-g906169a6f5c(B_v1.0.0.0)",
+          "new": "IQAwYdV9vTZGQpP_FnnIzJQ1Aadfru4_zh_FtnZkw6x3o3I"
+        },
+        {
+          "name": "AOIGUI Base Library",
+          "type": "version",
+          "old": "SMTVision_Base_Library_v1.0.0.0",
+          "new": "IQBY6ZPygjSlRrPCl3VEIqIOAT_Y9_F_E7Si6TSuhIKKDsE"
+        },
+        {
+          "name": "Review Station 3",
+          "type": "version",
+          "old": "Review_3.4.3.6(837715326)",
+          "new": "IQAOmYqUXUYiQZY-LooZ9PtGAR4EKkkhHfhyrj_h7vJBqN4"
+        },
+        {
+          "name": "SROCV",
+          "type": "version",
+          "old": "srocv.python_03_10_ocv_BodyFM_multi_v03_N_qdm",
+          "new": "IQBefbcsimGnSKZG2evMpTmQAZMd_gQ0BOnGsfTrGyFIils"
+        }
+      ]
     }
   ]
 }
