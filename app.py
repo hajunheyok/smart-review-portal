@@ -50,6 +50,37 @@ def _fetch_url(url):
     return resp.json()
 
 
+def detect_changes(old_data, new_data):
+    """Compare old cache with new data and return list of changes."""
+    if old_data is None:
+        return []
+
+    changes = []
+    old_sw = {sw["id"]: sw for sw in old_data.get("software", [])}
+    new_sw = {sw["id"]: sw for sw in new_data.get("software", [])}
+
+    for sw_id, nsw in new_sw.items():
+        osw = old_sw.get(sw_id)
+        if osw is None:
+            changes.append({"name": nsw["name"], "type": "new", "version": nsw.get("versionName", "")})
+            continue
+        if nsw.get("versionName", "") != osw.get("versionName", ""):
+            changes.append({
+                "name": nsw["name"], "type": "version",
+                "old": osw.get("versionName", ""), "new": nsw.get("versionName", "")
+            })
+        elif nsw.get("link", "") != osw.get("link", ""):
+            changes.append({"name": nsw["name"], "type": "link", "version": nsw.get("versionName", "")})
+        elif nsw.get("changelog_ko", "") != osw.get("changelog_ko", ""):
+            changes.append({"name": nsw["name"], "type": "changelog", "version": nsw.get("versionName", "")})
+
+    for sw_id in old_sw:
+        if sw_id not in new_sw:
+            changes.append({"name": old_sw[sw_id]["name"], "type": "removed"})
+
+    return changes
+
+
 def fetch_remote_data(config):
     """
     Fetch portal-data.json from internal server and GitHub Pages in parallel.
@@ -64,7 +95,6 @@ def fetch_remote_data(config):
         for future in as_completed(futures):
             try:
                 data = future.result()
-                save_cache(data)
                 return data
             except Exception:
                 continue
@@ -112,19 +142,24 @@ def load_html():
 def main():
     config = load_config()
 
-    # Priority: remote → cache → local file
+    old_cache = load_cache()
     data = fetch_remote_data(config)
-    if data is None:
-        data = load_cache()
+
+    changes = []
+    if data is not None:
+        changes = detect_changes(old_cache, data)
+        save_cache(data)
+    else:
+        data = old_cache
     if data is None:
         data = load_local_data()
 
     html = load_html()
 
-    # Write HTML + JSON as separate files (injection breaks pywebview)
     os.makedirs(CACHE_DIR, exist_ok=True)
     temp_path = os.path.join(CACHE_DIR, "portal.html")
     json_path = os.path.join(CACHE_DIR, "portal-data.json")
+    update_path = os.path.join(CACHE_DIR, "update-info.json")
 
     with open(temp_path, "w", encoding="utf-8") as f:
         f.write(html)
@@ -132,6 +167,9 @@ def main():
     if data:
         with open(json_path, "w", encoding="utf-8") as f:
             json.dump(data, f, ensure_ascii=False, indent=2)
+
+    with open(update_path, "w", encoding="utf-8") as f:
+        json.dump({"changes": changes}, f, ensure_ascii=False, indent=2)
 
     width = config.get("window_width", 1200)
     height = config.get("window_height", 850)
