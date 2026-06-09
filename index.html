@@ -1105,8 +1105,12 @@ function scrollToDl(id) {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
-  renderPortal();
-  applyTranslations();
+  // GitHub Pages: portal-data.json을 동적으로 로드하여 최신 데이터 반영
+  fetch('portal-data.json')
+    .then(function(r) { return r.ok ? r.json() : Promise.reject(); })
+    .then(function(data) { PORTAL_DATA = data; })
+    .catch(function() { /* embedded fallback */ })
+    .finally(function() { renderPortal(); applyTranslations(); });
 });
 </script>
 
