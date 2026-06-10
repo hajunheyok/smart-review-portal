@@ -147,7 +147,12 @@
   ],
   "app_version": "1.0.0",
   "app_download_url": "",
-  "history": [],
-  "rollbackLabel": "SMART Review 2.3 롤백 버전",
-  "rollbackLink": "https://kohyoung-my.sharepoint.com/:u:/p/db01_gsd/IQCscaFPBijoR4Bab92xuuX8Abpkv94AXB_Hr1IsNLLGUYg?e=psjaRL"
+  "rollbackLabel_ko": "SMART Review 2.3 롤백 버전",
+  "rollbackLabel_en": "",
+  "rollbackLabel_zh": "",
+  "rollbackLabel_ja": "",
+  "rollbackLabel_es": "",
+  "rollbackLabel_de": "",
+  "rollbackLink": "https://kohyoung-my.sharepoint.com/:u:/p/db01_gsd/IQCscaFPBijoR4Bab92xuuX8Abpkv94AXB_Hr1IsNLLGUYg?e=psjaRL",
+  "history": []
 }
