@@ -229,7 +229,7 @@
 
   /* Rollback toggle & panel */
   .rollback-toggle-wrap {
-    display: flex; align-items: center; gap: 10px; margin: 18px 0 0;
+    display: flex; align-items: center; gap: 10px; margin: 18px 0 14px;
   }
   .rollback-toggle-label {
     font-size: 13px; font-weight: 600; color: #64748b; cursor: pointer;
@@ -249,7 +249,7 @@
   .rollback-switch input:checked + .rollback-slider { background: #4a5a8a; }
   .rollback-switch input:checked + .rollback-slider::before { transform: translateX(20px); }
   .rollback-panel {
-    display: none; margin-top: 14px; padding: 16px 20px;
+    display: none; margin-top: 0; margin-bottom: 14px; padding: 16px 20px;
     background: linear-gradient(135deg, #f0f2f7 0%, #e8eaf3 100%);
     border: 1px solid #c8cee0; border-radius: 12px;
     animation: rollbackFadeIn 0.3s ease;
@@ -525,7 +525,9 @@ var PORTAL_DATA = window.__PORTAL_DATA || {
     }
   ],
   app_version: "1.0.0",
-  app_download_url: ""
+  app_download_url: "",
+  rollbackLabel: "SMART Review 2.3 롤백 버전",
+  rollbackLink: "https://kohyoung-my.sharepoint.com/:u:/p/db01_gsd/IQCscaFPBijoR4Bab92xuuX8Abpkv94AXB_Hr1IsNLLGUYg?e=psjaRL"
 };
 
 // ─── UI Translations ─────────────────────────────────────────
