@@ -207,7 +207,13 @@ class Handler(BaseHTTPRequestHandler):
             _data["lastUpdated"] = body.get("lastUpdated", _data.get("lastUpdated", ""))
             _data["app_version"] = body.get("app_version", _data.get("app_version", ""))
             _data["app_download_url"] = body.get("app_download_url", _data.get("app_download_url", ""))
-            _data["rollbackLabel"] = body.get("rollbackLabel", _data.get("rollbackLabel", ""))
+            if body.get("rollbackLabel_ko", "") != _data.get("rollbackLabel_ko", ""):
+                _data["rollbackLabel_en"] = ""
+                _data["rollbackLabel_zh"] = ""
+                _data["rollbackLabel_ja"] = ""
+                _data["rollbackLabel_es"] = ""
+                _data["rollbackLabel_de"] = ""
+            _data["rollbackLabel_ko"] = body.get("rollbackLabel_ko", _data.get("rollbackLabel_ko", ""))
             _data["rollbackLink"] = body.get("rollbackLink", _data.get("rollbackLink", ""))
             self._json_response({"success": True})
 
@@ -513,7 +519,7 @@ function renderGlobal() {
     '<hr style="border:none;border-top:1px solid #eee;margin:16px 0;">',
     '<div class="field-row">',
     '  <span class="field-label">🔄 롤백 라벨</span>',
-    '  <input class="field-input" id="fRollbackLabel" value="' + esc(d.rollbackLabel || '') + '" onchange="onGlobalChange()" placeholder="예: SMART Review 2.3 롤백 버전">',
+    '  <input class="field-input" id="fRollbackLabel" value="' + esc(d.rollbackLabel_ko || '') + '" onchange="onGlobalChange()" placeholder="예: SMART Review 2.3 롤백 버전">',
     '</div>',
     '<div class="field-row">',
     '  <span class="field-label">🔄 롤백 링크</span>',
@@ -559,7 +565,7 @@ function onGlobalChange() {
     lastUpdated: document.getElementById('fLastUpdated').value,
     app_version: document.getElementById('fAppVersion').value,
     app_download_url: document.getElementById('fAppDownloadUrl').value,
-    rollbackLabel: document.getElementById('fRollbackLabel').value,
+    rollbackLabel_ko: document.getElementById('fRollbackLabel').value,
     rollbackLink: document.getElementById('fRollbackLink').value
   });
 }

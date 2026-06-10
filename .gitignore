@@ -1,0 +1,22 @@
+# Build artifacts
+build/
+dist/
+__pycache__/
+*.exe
+*.zip
+
+# Config & secrets
+.env
+config.json
+
+# Distribution folders
+Portal Manager/
+SMART Review Version Portal/
+server-dist/*.exe
+server-dist/portal-data.json
+server-dist/analytics.json
+server-dist/*.bat
+
+# IDE
+.vscode/
+.idea/

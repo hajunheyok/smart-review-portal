@@ -453,6 +453,28 @@ def run_translate(data: dict) -> int:
         else:
             print("  — notice: 내용 없음 (건너뜀)")
 
+    # ── Rollback label ─────────────────────────────────────────────────────────
+    rollback_ko = data.get("rollbackLabel_ko", "")
+    needs_rollback = any(
+        _needs_translation(rollback_ko, data.get(f"rollbackLabel_{lang}", ""))
+        for lang in langs
+    )
+
+    if needs_rollback:
+        translated_any = False
+        for lang in langs:
+            if _needs_translation(rollback_ko, data.get(f"rollbackLabel_{lang}", "")):
+                data[f"rollbackLabel_{lang}"] = translate_with_claude(rollback_ko, lang)
+                total_calls += 1
+                translated_any = True
+        if translated_any:
+            print("  ✅ rollbackLabel: 번역 완료")
+    else:
+        if rollback_ko:
+            print("  — rollbackLabel: 이미 번역됨 (건너뜀)")
+        else:
+            print("  — rollbackLabel: 내용 없음 (건너뜀)")
+
     # ── Software changelogs ────────────────────────────────────────────────────
     for sw in data.get("software", []):
         name = sw.get("name", sw.get("id", "?"))
@@ -551,13 +573,17 @@ def save_history(data: dict, changes: list[dict]) -> None:
 # ─────────────────────────────────────────────────────────────────────────────
 
 SERVER_URL = "http://10.4.10.140:9090/portal-data.json"
+SERVER_HTML_URL = "http://10.4.10.140:9090/portal.html"
 GH_EXE = r"C:\Program Files\GitHub CLI\gh.exe"
 REPO_DIR = _SCRIPT_DIR
 
 
 def deploy_to_server(data: dict) -> bool:
-    """POST portal-data.json to the internal server."""
+    """POST portal-data.json + HTML to the internal server."""
     print("\n📡 서버 배포 중 (10.4.10.140:9090)...")
+    ok_json = False
+    ok_html = False
+
     try:
         payload = json.dumps(data, ensure_ascii=False, indent=2).encode("utf-8")
         req = Request(SERVER_URL, data=payload, method="POST")
@@ -565,13 +591,30 @@ def deploy_to_server(data: dict) -> bool:
         with urlopen(req, timeout=10) as resp:
             result = json.loads(resp.read().decode("utf-8"))
             if result.get("status") == "updated":
-                print("  ✅ 서버 업데이트 완료")
-                return True
-            print(f"  ⚠️  서버 응답: {result}")
-            return False
+                print("  ✅ portal-data.json 업데이트 완료")
+                ok_json = True
+            else:
+                print(f"  ⚠️  서버 응답: {result}")
     except URLError as e:
         print(f"  ❌ 서버 연결 실패: {e}")
-        return False
+
+    html_path = _SCRIPT_DIR / "Smart Review Version Portal.html"
+    if html_path.exists():
+        try:
+            html_bytes = html_path.read_bytes()
+            req = Request(SERVER_HTML_URL, data=html_bytes, method="POST")
+            req.add_header("Content-Type", "text/html; charset=utf-8")
+            with urlopen(req, timeout=15) as resp:
+                result = json.loads(resp.read().decode("utf-8"))
+                if result.get("status") == "updated":
+                    print("  ✅ portal.html 업데이트 완료")
+                    ok_html = True
+                else:
+                    print(f"  ⚠️  HTML 서버 응답: {result}")
+        except URLError as e:
+            print(f"  ❌ HTML 서버 업로드 실패: {e}")
+
+    return ok_json or ok_html
 
 
 def deploy_to_github(data: dict) -> bool:

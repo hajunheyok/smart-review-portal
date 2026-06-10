@@ -1,0 +1,227 @@
+============================================================
+  Smart Review Version Portal - 전체 사용 방법
+============================================================
+
+[1. 프로젝트 구조]
+
+  D:\claude\smart-review-portal\
+  ├── Portal Manager.exe                ← ★ 관리 도구 (더블클릭 실행)
+  ├── Smart Review Version Portal.html  ← 포털 원본 HTML
+  ├── index.html                        ← GitHub Pages용 (자동 동기화)
+  ├── portal-data.json                  ← 버전 데이터 (서버/GitHub에 배포됨)
+  ├── manage_portal.py                  ← 자동 배포 스크립트 (CLI)
+  ├── manage_gui.py                     ← Portal Manager 소스코드
+  ├── app.py                            ← 포털 뷰어 exe 소스코드
+  ├── .env                              ← Claude API 키 (번역용, 선택사항)
+  ├── SmartReviewPortal.spec            ← 포털 뷰어 exe 빌드 설정
+  ├── PortalManager.spec                ← Portal Manager exe 빌드 설정
+  ├── PortalDataServer.spec             ← 서버 exe 빌드 설정
+  ├── SMART Review Version Portal\      ← 포털 뷰어 배포 폴더
+  │   ├── SMART Review Version Portal.exe
+  │   ├── config.json
+  │   └── portal-data.json
+  └── server-dist\                      ← 서버 배포 폴더
+      ├── PortalDataServer.exe
+      ├── server.py
+      ├── portal-data.json
+      ├── install_service.bat
+      └── uninstall_service.bat
+
+------------------------------------------------------------
+
+[2. Portal Manager 사용법 (★ 기본 방법)]
+
+  1. "Portal Manager.exe" 더블클릭
+  2. 브라우저가 자동으로 열림 (http://127.0.0.1:포트)
+
+  ★ 📋 관리 탭
+  ───────────────
+  - 전역 설정: 공지사항(KO), 최종 업데이트 날짜, 롤백 라벨/링크, 앱 버전
+  - 소프트웨어별: Version, Link, Changelog(KO), Date
+  - [🔗 버전추출] 버튼: SharePoint 링크에서 파일명 자동 파싱
+  - ★ changelog_ko만 입력하면 EN/ZH/JA/ES/DE 자동 번역
+
+  ★ 배포 방법
+  ───────────────
+  - [🚀 배포] 버튼 클릭 → 아래 작업이 자동 실행:
+    1. 링크에서 버전명 추출
+    2. 한국어 → 5개 언어 자동 번역 (Claude API)
+    3. 변경 감지 + 이력 기록
+    4. 내부 서버 배포 (10.4.10.140:9090) — portal-data.json + HTML 동시 업로드
+    5. GitHub Pages 배포 (해외 지사용)
+  - 하단 로그 패널에서 진행 상황 실시간 확인
+
+  ★ 📊 대시보드 탭
+  ───────────────
+  - 지사별 접속 현황, SW 다운로드 순위, 미접속 모니터링
+  - 기간별 트렌드 (1W/1M/3M/6M/1Y)
+  - 30초 자동 갱신
+
+  ★ 종료
+  ───────────────
+  - 브라우저 탭 닫기 + 작업관리자에서 Portal Manager 프로세스 종료
+  - 또는 키보드 Ctrl+C (터미널에서 실행한 경우)
+
+------------------------------------------------------------
+
+[3. Portal Manager 배포 (유지보수 인원용)]
+
+  유지보수 인원의 PC에 설치하려면:
+
+  ★ 필수 준비물
+  ───────────────
+  1. 이 프로젝트 폴더 전체를 복사 (또는 git clone)
+     - git clone https://github.com/hajunheyok/smart-review-portal.git
+  2. Portal Manager.exe를 클론된 폴더 루트에 배치
+  3. Git 설치 (https://git-scm.com/)
+  4. GitHub CLI 설치 (https://cli.github.com/)
+     - 설치 후: gh auth login → GitHub 계정 인증
+
+  ★ 선택 준비물
+  ───────────────
+  - .env 파일 (Claude API 키) → 자동 번역 기능 사용 시 필요
+    ANTHROPIC_API_KEY=sk-ant-...
+  - Python 3.x → CLI(manage_portal.py) 직접 실행 시 필요
+    (Portal Manager.exe 사용 시에는 Python 불필요)
+
+  ★ 유지보수 인원의 일반적인 작업 흐름
+  ───────────────
+  1. Portal Manager.exe 더블클릭
+  2. 소프트웨어 링크/버전/변경내역 수정
+  3. [🚀 배포] 클릭
+  4. 끝 — 전 지사에 자동 반영됨
+
+------------------------------------------------------------
+
+[4. 수정 가능한 필드]
+
+  - link         : 다운로드 링크 (SharePoint URL)
+  - versionName  : 버전명 (보통 link에서 자동 추출, 직접 수정도 가능)
+  - changelog_ko : 변경 내역 (한국어만 입력 → en/zh/ja/es/de 자동 번역)
+  - date         : 날짜 (GUI에서는 수정 시 자동 반영)
+  - notice_ko    : 상단 공지사항 (한국어만 입력 → 자동 번역)
+  - lastUpdated  : 최종 업데이트 날짜 (GUI에서는 자동 반영)
+  - rollbackLabel_ko : 롤백 버전 라벨 (한국어 입력 → 자동 번역)
+  - rollbackLink : 롤백 다운로드 링크
+
+------------------------------------------------------------
+
+[5. 데이터 흐름]
+
+  [관리자 PC]
+       │
+       ├─ Portal Manager.exe 실행 → [🚀 배포] 클릭
+       │
+       ├─→ 내부 서버 (10.4.10.140:9090)
+       │     ├─ portal-data.json (데이터)
+       │     └─ portal.html (UI) ← ★ HTML도 서버에서 서빙
+       │
+       └─→ GitHub Pages (hajunheyok.github.io/smart-review-portal/)
+             ├─ portal-data.json
+             └─ index.html
+
+  [전 지사 PC]
+       │
+       └─ exe 실행 → 서버 & GitHub 동시 요청 (먼저 응답 사용)
+            → HTML + 데이터 모두 원격에서 로딩
+            → UI 변경도 exe 교체 없이 자동 반영
+            → 인터넷 없으면 캐시 → 내장 fallback
+
+------------------------------------------------------------
+
+[6. exe 빌드 방법]
+
+  ★ 포털 뷰어 (SmartReviewPortal.exe)
+  ───────────────
+  python -m PyInstaller SmartReviewPortal.spec --noconfirm
+  → dist\SMART Review Version Portal.exe 생성
+  → "SMART Review Version Portal\" 배포 폴더에 복사
+
+  ★ Portal Manager (Portal Manager.exe)
+  ───────────────
+  python -m PyInstaller PortalManager.spec --noconfirm
+  → dist\Portal Manager.exe 생성
+  → 프로젝트 루트에 복사
+
+  ★ 서버 (PortalDataServer.exe)
+  ───────────────
+  python -m PyInstaller PortalDataServer.spec --noconfirm
+  → dist\PortalDataServer.exe 생성
+  → server-dist\ 폴더에 복사
+
+------------------------------------------------------------
+
+[7. 변경 이력 관리]
+
+  - 배포 시 자동으로 변경사항 감지
+  - portal-data.json의 history 배열에 기록 (최대 30건)
+  - 포털 HTML 하단 "변경 이력" 섹션에서 확인 가능
+
+------------------------------------------------------------
+
+[8. exe 자동 업데이트]
+
+  ★ 동작 원리
+  1. exe 실행 시 portal-data.json에서 app_version 확인
+  2. 현재 버전보다 높으면 app_download_url에서 새 exe 자동 다운로드
+  3. "새 버전 사용 가능" 팝업 → [지금 재시작] 또는 [나중에]
+  4. 재시작 시 _updater.bat으로 exe 교체 + 재실행
+
+  ★ 관리자 설정
+  - Portal Manager > 전역 설정 > "앱 버전" + "앱 다운로드 URL" 입력 후 배포
+
+------------------------------------------------------------
+
+[9. 일괄 다운로드]
+
+  - 포털의 소프트웨어 카드에 체크박스
+  - "전체 선택" + "일괄 다운로드" 버튼
+  - 0.6초 간격 순차 다운로드
+
+------------------------------------------------------------
+
+[10. 다국어 지원]
+
+  6개 언어: 영어(EN), 한국어(KO), 중국어(ZH), 일본어(JA), 스페인어(ES), 독일어(DE)
+  - changelog_ko, notice_ko, rollbackLabel_ko만 한국어로 입력
+  - 배포 시 Claude API로 5개 언어 자동 번역
+  - .env 파일에 ANTHROPIC_API_KEY 설정 필요 (없으면 번역 건너뜀)
+
+------------------------------------------------------------
+
+[11. 서버 관리 (10.4.10.140)]
+
+  ★ 서버 구성
+  - 경로: server-dist\ 폴더를 서버 PC에 복사
+  - 실행: install_service.bat (관리자 권한) → Windows Task Scheduler 등록
+  - 포트: 9090
+  - 자동시작: PC 부팅 시 자동 실행 (SYSTEM 계정)
+
+  ★ 서버 코드(server.py) 변경 시
+  1. server-dist\server.py 수정
+  2. python -m PyInstaller PortalDataServer.spec --noconfirm
+  3. dist\PortalDataServer.exe → server-dist\ 복사
+  4. 서버 PC에서: uninstall_service.bat → 새 파일 복사 → install_service.bat
+
+  ★ 엔드포인트
+  - GET  /portal-data.json  — 데이터 조회
+  - POST /portal-data.json  — 데이터 업데이트
+  - GET  /portal.html       — HTML 조회
+  - POST /portal.html       — HTML 업데이트
+  - POST /api/event         — 사용 이벤트 수집
+  - GET  /api/analytics     — 분석 데이터 조회
+  - GET  /health            — 헬스체크
+
+------------------------------------------------------------
+
+[12. 주의사항]
+
+  - Portal Manager.exe는 반드시 프로젝트 폴더 루트에서 실행
+    (Smart Review Version Portal.html, portal-data.json이 같은 폴더에 있어야 함)
+  - GitHub 배포를 위해 git, gh CLI가 설치/인증되어 있어야 함
+  - .env 파일에 ANTHROPIC_API_KEY가 있어야 자동 번역 동작
+    (없어도 배포는 가능 — 번역만 건너뜀)
+  - UI 변경(HTML)은 배포만 하면 전 지사에 자동 반영 (exe 재배포 불필요)
+  - 데이터 변경(SW 버전, 공지)도 배포만 하면 자동 반영
+
+============================================================

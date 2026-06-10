@@ -21,6 +21,7 @@ def get_exe_dir():
 
 SCRIPT_DIR = get_exe_dir()
 DATA_FILE = os.path.join(SCRIPT_DIR, "portal-data.json")
+HTML_FILE = os.path.join(SCRIPT_DIR, "portal.html")
 ANALYTICS_FILE = os.path.join(SCRIPT_DIR, "analytics.json")
 
 VALID_SITES = {"KYK", "KYA", "KYA-MX", "JKY", "KYSEA", "KYV", "KYE", "KYC", "KYTW", "AES"}
@@ -44,6 +45,8 @@ class PortalDataHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         if self.path in ("/portal-data.json", "/"):
             self._serve_json()
+        elif self.path == "/portal.html":
+            self._serve_html()
         elif self.path == "/health":
             self._send_response(200, "application/json", json.dumps({"status": "ok"}))
         elif self.path == "/api/analytics":
@@ -54,6 +57,8 @@ class PortalDataHandler(BaseHTTPRequestHandler):
     def do_POST(self):
         if self.path == "/portal-data.json":
             self._upload_json()
+        elif self.path == "/portal.html":
+            self._upload_html()
         elif self.path == "/api/event":
             self._receive_event()
         else:
@@ -127,6 +132,21 @@ class PortalDataHandler(BaseHTTPRequestHandler):
         with open(DATA_FILE, "r", encoding="utf-8") as f:
             data = f.read()
         self._send_response(200, "application/json; charset=utf-8", data)
+
+    def _serve_html(self):
+        if not os.path.isfile(HTML_FILE):
+            self._send_response(404, "text/plain", "portal.html not found")
+            return
+        with open(HTML_FILE, "r", encoding="utf-8") as f:
+            html = f.read()
+        self._send_response(200, "text/html; charset=utf-8", html)
+
+    def _upload_html(self):
+        length = int(self.headers.get("Content-Length", 0))
+        body = self.rfile.read(length).decode("utf-8")
+        with open(HTML_FILE, "w", encoding="utf-8") as f:
+            f.write(body)
+        self._send_response(200, "application/json", json.dumps({"status": "updated"}))
 
     def _send_response(self, code, content_type, body):
         self.send_response(code)

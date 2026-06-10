@@ -58,6 +58,7 @@ def load_config():
 
 
 GITHUB_DATA_URL = "https://hajunheyok.github.io/smart-review-portal/portal-data.json"
+GITHUB_HTML_URL = "https://hajunheyok.github.io/smart-review-portal/index.html"
 
 
 def save_config(config):
@@ -88,6 +89,13 @@ def _fetch_url(url):
     resp = requests.get(url, timeout=5, allow_redirects=True)
     resp.raise_for_status()
     return resp.json()
+
+
+def _fetch_text(url):
+    """Fetch a single URL and return raw text."""
+    resp = requests.get(url, timeout=8, allow_redirects=True)
+    resp.raise_for_status()
+    return resp.text
 
 
 def detect_changes(old_data, new_data):
@@ -166,6 +174,60 @@ def load_local_data():
         if os.path.isfile(path):
             with open(path, encoding="utf-8") as f:
                 return json.load(f)
+    return None
+
+
+def fetch_remote_html(config):
+    """
+    Fetch portal HTML from internal server and GitHub Pages in parallel.
+    Returns HTML text from whichever responds first, or None.
+    """
+    data_url = config.get("data_url", "")
+    server_html_url = ""
+    if data_url:
+        base = data_url.rsplit("/", 1)[0]
+        server_html_url = base + "/portal.html"
+
+    urls = [u for u in [server_html_url, GITHUB_HTML_URL] if u]
+    if not urls:
+        return None
+
+    with ThreadPoolExecutor(max_workers=len(urls)) as executor:
+        futures = {executor.submit(_fetch_text, url): url for url in urls}
+        for future in as_completed(futures):
+            try:
+                html = future.result()
+                if html and len(html) > 1000:
+                    return html
+            except Exception:
+                continue
+    return None
+
+
+def save_html_cache(html):
+    """Save fetched HTML to local cache."""
+    os.makedirs(CACHE_DIR, exist_ok=True)
+    cache_path = os.path.join(CACHE_DIR, "portal-html-cache.html")
+    with open(cache_path, "w", encoding="utf-8") as f:
+        f.write(html)
+
+
+def load_html_cache():
+    """Load cached HTML from previous successful fetch."""
+    cache_path = os.path.join(CACHE_DIR, "portal-html-cache.html")
+    if os.path.isfile(cache_path):
+        with open(cache_path, encoding="utf-8") as f:
+            return f.read()
+    return None
+
+
+def load_local_html():
+    """Read the HTML template from bundle (last fallback)."""
+    for search_dir in [APP_DIR, BUNDLE_DIR]:
+        path = os.path.join(search_dir, "Smart Review Version Portal.html")
+        if os.path.isfile(path):
+            with open(path, encoding="utf-8") as f:
+                return f.read()
     return None
 
 
@@ -260,13 +322,21 @@ class AppApi:
         ).start()
 
 
-def load_html():
-    """Read the HTML template from bundle."""
-    for search_dir in [APP_DIR, BUNDLE_DIR]:
-        path = os.path.join(search_dir, "Smart Review Version Portal.html")
-        if os.path.isfile(path):
-            with open(path, encoding="utf-8") as f:
-                return f.read()
+def load_html(config):
+    """Load HTML with remote-first fallback: remote → cache → local bundle."""
+    html = fetch_remote_html(config)
+    if html:
+        save_html_cache(html)
+        return html
+
+    html = load_html_cache()
+    if html:
+        return html
+
+    html = load_local_html()
+    if html:
+        return html
+
     raise FileNotFoundError("Smart Review Version Portal.html not found")
 
 
@@ -301,7 +371,7 @@ def main():
             target=send_event, args=(config, "launch"), daemon=True
         ).start()
 
-    html = load_html()
+    html = load_html(config)
 
     os.makedirs(CACHE_DIR, exist_ok=True)
     temp_path = os.path.join(CACHE_DIR, "portal.html")

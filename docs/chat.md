@@ -1,5 +1,30 @@
 # Smart Review Version Portal - 대화 이력
 
+## 2026-06-10
+
+### 15:30 - 롤백 라벨 다국어 번역 + 스페인어/독일어 번역 누락 보정
+- **요청**: 롤백 라벨("SMART Review 2.3 롤백 버전")이 언어 전환 시 번역되지 않는 문제 수정 + 스페인어/독일어 notice·changelog 누락 보정 + 독일어 Download 버튼 현지화
+- **결과**:
+  - `rollbackLabel` → `rollbackLabel_ko/en/zh/ja/es/de` 다국어 필드 패턴으로 변경
+  - `manage_portal.py`의 `run_translate()`에 rollbackLabel 번역 블록 추가
+  - `manage_gui.py` 저장 핸들러: 라벨 변경 시 번역 필드 자동 초기화 (notice_ko 패턴 동일)
+  - HTML에 `getRollbackLabel()` 함수 추가, 언어 전환 시 라벨 자동 갱신
+  - notice_es, notice_de 번역 추가 (기존 누락)
+  - SW 5종(AOIGUI-Halcon, FastRed, ONNX, Base Library, Graphic Driver) changelog_es/de 추가
+  - Graphic Driver changelog_en/zh/ja도 함께 보정 (기존 빈값)
+  - 독일어 다운로드 버튼: "Download" → "Herunterladen"
+  - 서버 + GitHub 배포 완료, SmartReviewPortal.exe 재빌드 + 배포 폴더 복사 완료
+- **관련 파일**: `portal-data.json`, `manage_portal.py`, `manage_gui.py`, `Smart Review Version Portal.html`, `index.html`
+
+### 14:00 - 상시 롤백 다운로드 기능 구현
+- **요청**: 배포 버전에 치명적 문제 발생 시 안전장치로 롤백 버전(OneDrive 압축파일) 상시 다운로드 기능 추가
+- **결과**:
+  - portal-data.json에 rollbackLink/rollbackLabel 필드 추가
+  - Portal Manager GUI에 롤백 라벨/링크 입력란 추가
+  - 포탈 HTML에 토글 스위치 + 다운로드 패널 추가 (6개 언어 UI 번역 포함)
+  - 서버 + GitHub 배포, SmartReviewPortal.exe + Portal Manager.exe 재빌드
+- **관련 파일**: `portal-data.json`, `manage_gui.py`, `Smart Review Version Portal.html`, `index.html`
+
 ## 2026-06-09
 
 ### 20:30 - 대시보드 고도화 (SW 순위 + 미접속 모니터링 + 기간별 트렌드)

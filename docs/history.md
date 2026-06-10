@@ -1,5 +1,33 @@
 # Smart Review Version Portal - 변경 히스토리
 
+## 2026-06-10
+
+### HTML 원격 로딩 구조 개선 + server 폴더 통합
+- **파일**: `app.py`, `server-dist/server.py`, `manage_portal.py`, `PortalDataServer.spec`, `SmartReviewPortal.spec`
+- **변경**:
+  1. `app.py` — `fetch_remote_html()` 함수 추가 (서버/GitHub 병렬 요청), HTML 캐시, fallback 체인 (원격→캐시→로컬)
+  2. `server-dist/server.py` — GET/POST `/portal.html` 엔드포인트 추가
+  3. `manage_portal.py` — `deploy_to_server()`에 HTML 업로드 추가 (portal-data.json + HTML 동시 배포)
+  4. `server/` + `server-dist/` 폴더 통합 → `server-dist/` 단일 폴더로 정리
+  5. SmartReviewPortal.exe, PortalDataServer.exe 재빌드
+
+### 롤백 라벨 다국어 번역 + 스페인어/독일어 전체 번역 보정
+- **파일**: `portal-data.json`, `manage_portal.py`, `manage_gui.py`, `Smart Review Version Portal.html`, `index.html`
+- **변경**:
+  1. `portal-data.json` — `rollbackLabel` → `rollbackLabel_ko/en/zh/ja/es/de` 다국어 패턴으로 변경, notice_es/notice_de 추가, SW 5종 changelog_es/de 추가, Graphic Driver changelog_en/zh/ja 보정
+  2. `manage_portal.py` — `run_translate()`에 rollbackLabel 번역 블록 추가 (notice와 동일 패턴)
+  3. `manage_gui.py` — GUI 필드 `rollbackLabel_ko` 참조로 변경, 저장 핸들러에 라벨 변경 시 번역 필드 초기화 로직 추가
+  4. `Smart Review Version Portal.html` — `getRollbackLabel()` 함수 추가, renderPortal/applyTranslations에서 언어별 라벨 표시, rollbackName id 추가, 독일어 btnDownload "Download" → "Herunterladen"
+  5. `index.html` — HTML과 동기화
+
+### 상시 롤백 다운로드 기능 구현
+- **파일**: `portal-data.json`, `manage_gui.py`, `manage_portal.py`, `Smart Review Version Portal.html`, `index.html`, `PortalManager.spec`, `SmartReviewPortal.spec`
+- **변경**:
+  1. `portal-data.json` — rollbackLink, rollbackLabel 필드 추가
+  2. `manage_gui.py` — renderGlobal()에 롤백 라벨/링크 입력란 추가, onGlobalChange()에 rollback 필드 전송, /api/save_notice에 rollback 저장
+  3. `Smart Review Version Portal.html` — CSS(토글 스위치, 롤백 패널), UI_TRANSLATIONS 6개 언어에 rollbackToggle/rollbackDownload 추가, renderPortal()에 토글+다운로드 영역, toggleRollback() 함수, applyTranslations()에 롤백 번역
+  4. SmartReviewPortal.exe, Portal Manager.exe 재빌드
+
 ## 2026-06-09
 
 ### 대시보드 고도화: SW별 다운로드 순위 + 미접속 모니터링 + 기간별 트렌드
@@ -14,9 +42,9 @@
   7. DELETE `/api/analytics` 초기화 엔드포인트 추가 (server.py)
 
 ### 3차 고도화: Usage Analytics Dashboard (지사별 사용 현황 대시보드)
-- **파일**: `server/server.py`, `app.py`, `manage_gui.py`, `portal-data.json`, `config.json`
+- **파일**: `server-dist/server.py`, `app.py`, `manage_gui.py`, `portal-data.json`, `config.json`
 - **변경**:
-  1. `server/server.py` — POST `/api/event` (이벤트 수집), GET `/api/analytics` (데이터 조회), OPTIONS preflight, `analytics.json` 별도 저장
+  1. `server-dist/server.py` — POST `/api/event` (이벤트 수집), GET `/api/analytics` (데이터 조회), OPTIONS preflight, `analytics.json` 별도 저장
   2. `app.py` — 최초 실행 시 지사 선택 모달 (포털 HTML 내), launch 이벤트 fire-and-forget 전송, `AppApi.set_site()` 추가
   3. `manage_gui.py` — 탭 네비게이션 (📋 관리 / 📊 대시보드), 대시보드: 요약 카드, 지사별 막대 그래프, 7일 트렌드, 상세 테이블, 30초 자동 갱신
   4. `portal-data.json` — `sites` 필드 추가 (9개 지사: KYK, KYA, KYA-MX, JKY, KYSEA, KYV, KYE, KYC, KYTW)
@@ -80,5 +108,5 @@
 - **변경**: `(1)`, `(2)` 등 중복 다운로드 번호 제거 시 빌드번호 `(837715326)` 보존 (4자리 이하만 제거)
 
 ### 서버 원격 데이터 업데이트 기능 추가
-- **파일**: `server/server.py`
+- **파일**: `server-dist/server.py`
 - **변경**: POST `/portal-data.json` 엔드포인트 추가 → curl로 원격 업데이트 가능
