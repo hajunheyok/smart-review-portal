@@ -1,6 +1,4 @@
 {
-  "rollbackLink": "",
-  "rollbackLabel": "SMART Review 2.3 롤백 버전",
   "lastUpdated": "2026-06-09",
   "notice_ko": "현재까지 검증 완료된 신규 버전입니다. 기존 버전과 상이하다면 다운로드를 진행해주세요.",
   "notice_en": "These are the latest verified versions. If your current version differs, please proceed with the download.",
@@ -149,5 +147,7 @@
   ],
   "app_version": "1.0.0",
   "app_download_url": "",
-  "history": []
+  "history": [],
+  "rollbackLabel": "SMART Review 2.3 롤백 버전",
+  "rollbackLink": "https://kohyoung-my.sharepoint.com/:u:/p/db01_gsd/IQCscaFPBijoR4Bab92xuuX8Abpkv94AXB_Hr1IsNLLGUYg?e=psjaRL"
 }
