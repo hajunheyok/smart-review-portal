@@ -207,6 +207,8 @@ class Handler(BaseHTTPRequestHandler):
             _data["lastUpdated"] = body.get("lastUpdated", _data.get("lastUpdated", ""))
             _data["app_version"] = body.get("app_version", _data.get("app_version", ""))
             _data["app_download_url"] = body.get("app_download_url", _data.get("app_download_url", ""))
+            _data["rollbackLabel"] = body.get("rollbackLabel", _data.get("rollbackLabel", ""))
+            _data["rollbackLink"] = body.get("rollbackLink", _data.get("rollbackLink", ""))
             self._json_response({"success": True})
 
         elif self.path == "/api/extract":
@@ -507,6 +509,15 @@ function renderGlobal() {
     '<div class="field-row">',
     '  <span class="field-label">앱 다운로드 URL</span>',
     '  <input class="field-input" id="fAppDownloadUrl" value="' + esc(d.app_download_url || '') + '" onchange="onGlobalChange()" placeholder="exe 다운로드 링크 (GitHub Release 등)">',
+    '</div>',
+    '<hr style="border:none;border-top:1px solid #eee;margin:16px 0;">',
+    '<div class="field-row">',
+    '  <span class="field-label">🔄 롤백 라벨</span>',
+    '  <input class="field-input" id="fRollbackLabel" value="' + esc(d.rollbackLabel || '') + '" onchange="onGlobalChange()" placeholder="예: SMART Review 2.3 롤백 버전">',
+    '</div>',
+    '<div class="field-row">',
+    '  <span class="field-label">🔄 롤백 링크</span>',
+    '  <input class="field-input" id="fRollbackLink" value="' + esc(d.rollbackLink || '') + '" onchange="onGlobalChange()" placeholder="OneDrive 압축파일 공유 링크">',
     '</div>'
   ].join('');
 }
@@ -547,7 +558,9 @@ function onGlobalChange() {
     notice_ko: document.getElementById('fNoticeKo').value,
     lastUpdated: document.getElementById('fLastUpdated').value,
     app_version: document.getElementById('fAppVersion').value,
-    app_download_url: document.getElementById('fAppDownloadUrl').value
+    app_download_url: document.getElementById('fAppDownloadUrl').value,
+    rollbackLabel: document.getElementById('fRollbackLabel').value,
+    rollbackLink: document.getElementById('fRollbackLink').value
   });
 }
 
