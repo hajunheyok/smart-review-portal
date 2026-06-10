@@ -227,6 +227,46 @@
     box-shadow: none; opacity: 0.65; pointer-events: none;
   }
 
+  /* Rollback toggle & panel */
+  .rollback-toggle-wrap {
+    display: flex; align-items: center; gap: 10px; margin: 18px 0 0;
+  }
+  .rollback-toggle-label {
+    font-size: 13px; font-weight: 600; color: #64748b; cursor: pointer;
+  }
+  .rollback-switch {
+    position: relative; width: 44px; height: 24px; cursor: pointer; display: inline-block;
+  }
+  .rollback-switch input { opacity: 0; width: 0; height: 0; }
+  .rollback-slider {
+    position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+    background: #cbd5e1; border-radius: 24px; transition: 0.3s;
+  }
+  .rollback-slider::before {
+    content: ''; position: absolute; width: 18px; height: 18px;
+    left: 3px; bottom: 3px; background: #fff; border-radius: 50%; transition: 0.3s;
+  }
+  .rollback-switch input:checked + .rollback-slider { background: #4a5a8a; }
+  .rollback-switch input:checked + .rollback-slider::before { transform: translateX(20px); }
+  .rollback-panel {
+    display: none; margin-top: 14px; padding: 16px 20px;
+    background: linear-gradient(135deg, #f0f2f7 0%, #e8eaf3 100%);
+    border: 1px solid #c8cee0; border-radius: 12px;
+    animation: rollbackFadeIn 0.3s ease;
+  }
+  .rollback-panel.active { display: flex; align-items: center; justify-content: space-between; }
+  @keyframes rollbackFadeIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+  .rollback-info { display: flex; align-items: center; gap: 10px; }
+  .rollback-icon { font-size: 24px; }
+  .rollback-name { font-size: 15px; font-weight: 700; color: #1e293b; }
+  .rollback-dl-btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 10px 22px; background: linear-gradient(135deg, #4a5a8a, #5e4d7a);
+    color: #fff; font-size: 13px; font-weight: 700; border-radius: 10px;
+    text-decoration: none; transition: all 0.2s; border: none; cursor: pointer;
+  }
+  .rollback-dl-btn:hover { transform: scale(1.04); box-shadow: 0 4px 16px rgba(74,90,138,0.35); }
+
   /* Batch download toolbar */
   .batch-toolbar {
     display: flex; align-items: center; justify-content: space-between;
@@ -515,7 +555,8 @@ var UI_TRANSLATIONS = {
     historyTitle: "📜 Change History",
     historyEmpty: "No change history yet.",
     historyVersion: "VERSION", historyNew: "NEW", historyLink: "LINK",
-    historyChangelog: "CHANGELOG", historyNotice: "NOTICE", historyRemoved: "REMOVED"
+    historyChangelog: "CHANGELOG", historyNotice: "NOTICE", historyRemoved: "REMOVED",
+    rollbackToggle: "Rollback Version", rollbackDownload: "⬇ Download"
   },
   ko: {
     title: "스마트 리뷰 버전 포털",
@@ -542,7 +583,8 @@ var UI_TRANSLATIONS = {
     historyTitle: "📜 변경 이력",
     historyEmpty: "변경 이력이 없습니다.",
     historyVersion: "버전", historyNew: "신규", historyLink: "링크",
-    historyChangelog: "변경내역", historyNotice: "공지", historyRemoved: "제거"
+    historyChangelog: "변경내역", historyNotice: "공지", historyRemoved: "제거",
+    rollbackToggle: "롤백 버전", rollbackDownload: "⬇ 다운로드"
   },
   zh: {
     title: "Smart Review 版本中心",
@@ -569,7 +611,8 @@ var UI_TRANSLATIONS = {
     historyTitle: "📜 变更记录",
     historyEmpty: "暂无变更记录。",
     historyVersion: "版本", historyNew: "新增", historyLink: "链接",
-    historyChangelog: "更新日志", historyNotice: "公告", historyRemoved: "移除"
+    historyChangelog: "更新日志", historyNotice: "公告", historyRemoved: "移除",
+    rollbackToggle: "回滚版本", rollbackDownload: "⬇ 下载"
   },
   ja: {
     title: "Smart Review バージョンポータル",
@@ -596,7 +639,8 @@ var UI_TRANSLATIONS = {
     historyTitle: "📜 変更履歴",
     historyEmpty: "変更履歴はありません。",
     historyVersion: "バージョン", historyNew: "新規", historyLink: "リンク",
-    historyChangelog: "変更履歴", historyNotice: "お知らせ", historyRemoved: "削除"
+    historyChangelog: "変更履歴", historyNotice: "お知らせ", historyRemoved: "削除",
+    rollbackToggle: "ロールバックバージョン", rollbackDownload: "⬇ ダウンロード"
   },
   es: {
     title: "Smart Review Portal de Versiones",
@@ -623,7 +667,8 @@ var UI_TRANSLATIONS = {
     historyTitle: "📜 Historial de Cambios",
     historyEmpty: "No hay historial de cambios.",
     historyVersion: "VERSIÓN", historyNew: "NUEVO", historyLink: "ENLACE",
-    historyChangelog: "CAMBIOS", historyNotice: "AVISO", historyRemoved: "ELIMINADO"
+    historyChangelog: "CAMBIOS", historyNotice: "AVISO", historyRemoved: "ELIMINADO",
+    rollbackToggle: "Versión de reversión", rollbackDownload: "⬇ Descargar"
   },
   de: {
     title: "Smart Review Versionsportal",
@@ -650,7 +695,8 @@ var UI_TRANSLATIONS = {
     historyTitle: "📜 Änderungsverlauf",
     historyEmpty: "Kein Änderungsverlauf vorhanden.",
     historyVersion: "VERSION", historyNew: "NEU", historyLink: "LINK",
-    historyChangelog: "ÄNDERUNGEN", historyNotice: "HINWEIS", historyRemoved: "ENTFERNT"
+    historyChangelog: "ÄNDERUNGEN", historyNotice: "HINWEIS", historyRemoved: "ENTFERNT",
+    rollbackToggle: "Rollback-Version", rollbackDownload: "⬇ Herunterladen"
   }
 };
 
@@ -878,6 +924,27 @@ function renderPortal() {
 
   var batchLabels = BATCH_LABELS[currentLang] || BATCH_LABELS['en'];
   var totalDl = d.software.filter(function(s) { return !!s.link; }).length;
+  var t = UI_TRANSLATIONS[currentLang] || UI_TRANSLATIONS['en'];
+
+  var rollbackLabel = d.rollbackLabel || 'Rollback Version';
+  var rollbackHTML = [
+    '<div class="rollback-toggle-wrap">',
+    '  <label class="rollback-switch">',
+    '    <input type="checkbox" id="rollbackToggle" onchange="toggleRollback()">',
+    '    <span class="rollback-slider"></span>',
+    '  </label>',
+    '  <span class="rollback-toggle-label" id="rollbackToggleLabel">' + esc(t.rollbackToggle) + '</span>',
+    '</div>',
+    '<div class="rollback-panel" id="rollbackPanel">',
+    '  <div class="rollback-info">',
+    '    <span class="rollback-icon">🔄</span>',
+    '    <span class="rollback-name">' + esc(rollbackLabel) + '</span>',
+    '  </div>',
+    '  <a class="rollback-dl-btn" href="' + esc(d.rollbackLink || '') + '" target="_blank" id="rollbackDlBtn">',
+    '    <span id="rollbackDlLabel">' + esc(t.rollbackDownload) + '</span>',
+    '  </a>',
+    '</div>'
+  ].join('\n');
 
   var downloadsHTML = [
     '<hr class="divider">',
@@ -889,6 +956,7 @@ function renderPortal() {
     '  </div>',
     '  <button class="batch-btn" id="batchDlBtn" disabled onclick="batchDownload()">⬇ <span id="batchDlLabel">' + esc(batchLabels.batchDl) + '</span></button>',
     '</div>',
+    rollbackHTML,
     '<div class="sw-grid" id="swGrid">',
     swCardsHTML,
     '</div>'
@@ -1008,6 +1076,10 @@ function applyTranslations() {
   var countEl = document.getElementById('detectedCount');
   var count = countEl ? countEl.textContent : '0';
   setHTML('detectedTitle', '📎 ' + esc(t.detected) + ' (<span id="detectedCount">' + count + '</span>)');
+
+  // Rollback toggle
+  setText('rollbackToggleLabel', t.rollbackToggle);
+  setText('rollbackDlLabel', t.rollbackDownload);
 
   // Batch download toolbar
   var bl = BATCH_LABELS[currentLang] || BATCH_LABELS['en'];
@@ -1357,6 +1429,16 @@ var BATCH_LABELS = {
   es: { selectAll: 'Seleccionar Todo', selected: 'seleccionados', batchDl: 'Descarga Masiva' },
   de: { selectAll: 'Alle auswählen', selected: 'ausgewählt', batchDl: 'Sammel-Download' }
 };
+
+function toggleRollback() {
+  var panel = document.getElementById('rollbackPanel');
+  var checked = document.getElementById('rollbackToggle').checked;
+  if (checked) {
+    panel.classList.add('active');
+  } else {
+    panel.classList.remove('active');
+  }
+}
 
 function toggleSelectAll(masterCb) {
   var checks = document.querySelectorAll('.sw-check');
