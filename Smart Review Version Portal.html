@@ -732,7 +732,11 @@ if (PORTAL_DATA.ui_overrides) {
 }
 
 // ─── Language state ──────────────────────────────────────────
-var currentLang = 'en';
+var currentLang = (function() {
+  var bl = (navigator.language || navigator.userLanguage || 'en').toLowerCase().split('-')[0];
+  var supported = ['en', 'ko', 'zh', 'ja', 'es', 'de'];
+  return supported.indexOf(bl) !== -1 ? bl : 'en';
+})();
 
 // ─── Helpers ─────────────────────────────────────────────────
 function esc(str) {
@@ -1699,6 +1703,10 @@ document.addEventListener('DOMContentLoaded', function() {
     .finally(function() {
       renderPortal();
       applyTranslations();
+      document.querySelectorAll('.lang-btn').forEach(function(b) {
+        if (b.getAttribute('data-lang') === currentLang) b.classList.add('active');
+        else b.classList.remove('active');
+      });
       if (needSiteSelect && sitesList.length > 0) {
         showSiteSelector(sitesList);
       } else {
