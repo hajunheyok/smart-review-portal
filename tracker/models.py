@@ -269,7 +269,7 @@ def create_session(db_path: str, name: str, created_by: str) -> int:
     try:
         with conn:
             cur = conn.execute(
-                "INSERT INTO sessions (name, status, created_by, created_at) VALUES (?, 'active', ?, ?)",
+                "INSERT INTO sessions (name, status, created_by, created_at) VALUES (?, 'draft', ?, ?)",
                 (name, created_by, _now()),
             )
             session_id = cur.lastrowid

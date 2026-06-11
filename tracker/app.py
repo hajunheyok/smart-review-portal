@@ -266,7 +266,7 @@ def sessions_search():
 @app.route("/api/sessions")
 @require_auth
 def sessions_list():
-    active = models.get_sessions_by_status(DB_PATH, ["active", "draft", "in_progress"])
+    active = models.get_sessions_by_status(DB_PATH, ["draft", "in_progress"])
     archived = models.get_sessions_by_status(DB_PATH, ["completed"])
     return jsonify({"active": active, "archived": archived})
 
@@ -308,7 +308,7 @@ def sessions_get(session_id):
 def sessions_update_status(session_id):
     data = request.get_json(silent=True) or {}
     new_status = data.get("status")
-    valid_statuses = {"draft", "in_progress", "completed", "active"}
+    valid_statuses = {"draft", "in_progress", "completed"}
     if new_status not in valid_statuses:
         return jsonify({"error": "Invalid status"}), 400
 

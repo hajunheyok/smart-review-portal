@@ -1,4 +1,2187 @@
 <!DOCTYPE html>
-<html><head><title>Smart Review Test Tracker</title></head>
-<body><h1>Smart Review Test Tracker</h1><p>Loading...</p></body>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smart Review Test Tracker</title>
+<script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+<style>
+/* ========== CSS Variables ========== */
+:root {
+  --primary: #2563eb;
+  --primary-light: #3b82f6;
+  --primary-dark: #1d4ed8;
+  --success: #16a34a;
+  --fail: #dc2626;
+  --na-color: #6b7280;
+  --pending-color: #2563eb;
+  --bg: #f8fafc;
+  --sidebar-bg: #1e293b;
+  --sidebar-text: #cbd5e1;
+  --sidebar-hover: #334155;
+  --card-bg: #ffffff;
+  --border: #e2e8f0;
+  --text: #1e293b;
+  --text-secondary: #64748b;
+  --shadow: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
+  --radius: 8px;
+  --radius-sm: 4px;
+  --header-h: 56px;
+  --sidebar-w: 280px;
+  --feedback-w: 380px;
+  --transition: 0.2s ease;
+}
+
+/* ========== Reset ========== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.5;
+  overflow: hidden;
+  height: 100vh;
+}
+button { cursor: pointer; font-family: inherit; }
+input, textarea, select { font-family: inherit; }
+a { text-decoration: none; color: inherit; }
+
+/* ========== Utility ========== */
+.hidden { display: none !important; }
+.truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* ========== Auth Screen ========== */
+#auth-screen {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+}
+.auth-card {
+  background: var(--card-bg);
+  border-radius: 12px;
+  box-shadow: var(--shadow-lg);
+  width: 400px;
+  max-width: 90vw;
+  overflow: hidden;
+}
+.auth-header {
+  text-align: center;
+  padding: 32px 24px 16px;
+}
+.auth-header h1 {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+.auth-header p {
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+.auth-tabs {
+  display: flex;
+  border-bottom: 2px solid var(--border);
+}
+.auth-tab {
+  flex: 1;
+  padding: 12px;
+  text-align: center;
+  border: none;
+  background: none;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: var(--transition);
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+}
+.auth-tab.active {
+  color: var(--primary);
+  border-bottom-color: var(--primary);
+}
+.auth-form {
+  padding: 24px;
+}
+.form-group {
+  margin-bottom: 16px;
+}
+.form-group label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+}
+.form-group input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  outline: none;
+  transition: var(--transition);
+}
+.form-group input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
+}
+.auth-btn {
+  width: 100%;
+  padding: 12px;
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 15px;
+  font-weight: 600;
+  transition: var(--transition);
+}
+.auth-btn:hover { background: var(--primary-dark); }
+.auth-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+.auth-error {
+  margin-top: 12px;
+  padding: 10px;
+  background: #fef2f2;
+  color: var(--fail);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  text-align: center;
+}
+
+/* ========== Pending Screen ========== */
+#pending-screen {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+}
+.pending-card {
+  background: var(--card-bg);
+  border-radius: 12px;
+  box-shadow: var(--shadow-lg);
+  padding: 48px 32px;
+  text-align: center;
+  width: 420px;
+  max-width: 90vw;
+}
+.pending-card .icon { font-size: 48px; margin-bottom: 16px; }
+.pending-card h2 { font-size: 20px; margin-bottom: 8px; }
+.pending-card p { color: var(--text-secondary); font-size: 14px; margin-bottom: 24px; }
+.pending-card .back-btn {
+  padding: 10px 24px;
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* ========== Main App ========== */
+#app-screen { display: none; height: 100vh; flex-direction: column; }
+#app-screen.active { display: flex; }
+
+/* --- Header --- */
+.app-header {
+  height: var(--header-h);
+  background: var(--card-bg);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  z-index: 100;
+  flex-shrink: 0;
+}
+.app-header .logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+  margin-right: auto;
+}
+.app-header .logo svg {
+  width: 28px;
+  height: 28px;
+  fill: var(--primary);
+}
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.header-btn {
+  position: relative;
+  padding: 8px;
+  border: none;
+  background: none;
+  border-radius: var(--radius-sm);
+  font-size: 18px;
+  color: var(--text-secondary);
+  transition: var(--transition);
+}
+.header-btn:hover { background: var(--bg); color: var(--text); }
+.badge {
+  position: absolute;
+  top: 2px; right: 2px;
+  background: var(--fail);
+  color: white;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: 10px;
+  min-width: 16px;
+  text-align: center;
+  line-height: 14px;
+}
+.online-indicator {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  padding: 4px 10px;
+  background: var(--bg);
+  border-radius: 16px;
+}
+.online-dot {
+  width: 8px; height: 8px;
+  background: var(--success);
+  border-radius: 50%;
+  animation: pulse 2s infinite;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 600;
+}
+.user-avatar {
+  width: 32px; height: 32px;
+  background: var(--primary);
+  color: white;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px;
+  font-weight: 700;
+}
+.logout-btn {
+  padding: 6px 12px;
+  border: 1px solid var(--border);
+  background: white;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  color: var(--text-secondary);
+  transition: var(--transition);
+}
+.logout-btn:hover { background: var(--bg); color: var(--text); }
+
+/* --- Notification Dropdown --- */
+.notif-dropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  width: 340px;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-lg);
+  z-index: 200;
+  max-height: 400px;
+  overflow-y: auto;
+}
+.notif-dropdown-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  font-weight: 600;
+  font-size: 14px;
+}
+.notif-dropdown-header button {
+  background: none;
+  border: none;
+  color: var(--primary);
+  font-size: 12px;
+  font-weight: 600;
+}
+.notif-item {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+  cursor: pointer;
+  transition: var(--transition);
+}
+.notif-item:hover { background: var(--bg); }
+.notif-item .time { color: var(--text-secondary); font-size: 11px; margin-top: 4px; }
+.notif-empty { padding: 24px; text-align: center; color: var(--text-secondary); font-size: 13px; }
+
+/* --- Layout --- */
+.app-body {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* --- Sidebar --- */
+.sidebar {
+  width: var(--sidebar-w);
+  background: var(--sidebar-bg);
+  color: var(--sidebar-text);
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  overflow-y: auto;
+}
+.sidebar-section {
+  padding: 16px;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+.sidebar-section-title {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #94a3b8;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.sidebar-section-title button {
+  background: none;
+  border: none;
+  color: var(--primary-light);
+  font-size: 18px;
+  padding: 0 4px;
+  line-height: 1;
+  cursor: pointer;
+}
+.sidebar-session {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: 13px;
+  transition: var(--transition);
+  margin-bottom: 2px;
+}
+.sidebar-session:hover { background: var(--sidebar-hover); }
+.sidebar-session.active { background: var(--primary); color: white; }
+.session-status-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.session-status-dot.draft { background: var(--na-color); }
+.session-status-dot.in_progress { background: var(--primary-light); }
+.session-status-dot.completed { background: var(--success); }
+.sidebar-session .name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* Archive toggle */
+.archive-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #94a3b8;
+  margin-bottom: 8px;
+  user-select: none;
+}
+.archive-toggle .arrow { transition: transform 0.2s; font-size: 10px; }
+.archive-toggle .arrow.open { transform: rotate(90deg); }
+
+/* Archive search */
+.archive-search {
+  margin-bottom: 8px;
+}
+.archive-search input {
+  width: 100%;
+  padding: 6px 10px;
+  border: 1px solid rgba(255,255,255,0.15);
+  background: rgba(255,255,255,0.08);
+  border-radius: var(--radius-sm);
+  color: white;
+  font-size: 12px;
+  outline: none;
+}
+.archive-search input::placeholder { color: #94a3b8; }
+
+/* Admin sidebar link */
+.sidebar-admin-link {
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: 13px;
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.sidebar-admin-link:hover { background: var(--sidebar-hover); }
+
+/* --- Center Panel --- */
+.center-panel {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px;
+  min-width: 0;
+}
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--text-secondary);
+}
+.empty-state .icon { font-size: 48px; margin-bottom: 16px; opacity: 0.5; }
+.empty-state h3 { font-size: 18px; margin-bottom: 8px; }
+.empty-state p { font-size: 14px; }
+
+/* Session header */
+.session-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.session-title {
+  font-size: 22px;
+  font-weight: 700;
+}
+.session-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 16px;
+  font-size: 12px;
+  font-weight: 600;
+}
+.status-badge.draft { background: #f1f5f9; color: var(--na-color); }
+.status-badge.in_progress { background: #eff6ff; color: var(--primary); }
+.status-badge.completed { background: #f0fdf4; color: var(--success); }
+.btn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 600;
+  transition: var(--transition);
+}
+.btn-primary { background: var(--primary); color: white; }
+.btn-primary:hover { background: var(--primary-dark); }
+.btn-success { background: var(--success); color: white; }
+.btn-success:hover { background: #15803d; }
+.btn-warning { background: #f59e0b; color: white; }
+.btn-warning:hover { background: #d97706; }
+.btn-danger { background: var(--fail); color: white; }
+.btn-danger:hover { background: #b91c1c; }
+.btn-outline {
+  background: white;
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+}
+.btn-outline:hover { background: var(--bg); color: var(--text); }
+.btn-sm { padding: 4px 10px; font-size: 12px; }
+
+/* Progress bar */
+.progress-summary {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 24px;
+  padding: 16px;
+  background: var(--card-bg);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+.progress-bar-container {
+  flex: 1;
+  height: 8px;
+  background: var(--border);
+  border-radius: 4px;
+  overflow: hidden;
+  display: flex;
+}
+.progress-bar-segment { height: 100%; transition: width 0.3s; }
+.progress-bar-segment.pass { background: var(--success); }
+.progress-bar-segment.fail { background: var(--fail); }
+.progress-bar-segment.na { background: var(--na-color); }
+.progress-stats {
+  display: flex;
+  gap: 16px;
+  flex-shrink: 0;
+}
+.progress-stat {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  font-weight: 600;
+}
+.progress-stat .dot {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+}
+.progress-stat .dot.pass { background: var(--success); }
+.progress-stat .dot.fail { background: var(--fail); }
+.progress-stat .dot.na { background: var(--na-color); }
+.progress-stat .dot.pending { background: transparent; border: 2px solid var(--primary); }
+
+/* Version table */
+.version-section {
+  background: var(--card-bg);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  margin-bottom: 24px;
+  overflow: hidden;
+}
+.version-section h3 {
+  padding: 12px 16px;
+  font-size: 14px;
+  font-weight: 700;
+  border-bottom: 1px solid var(--border);
+  background: #f8fafc;
+}
+.version-group-header {
+  padding: 10px 16px;
+  font-size: 13px;
+  font-weight: 700;
+  background: #f1f5f9;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+}
+.version-row {
+  display: flex;
+  align-items: center;
+  padding: 8px 16px;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+}
+.version-row:last-child { border-bottom: none; }
+.version-row .sw-name {
+  width: 220px;
+  font-weight: 500;
+  flex-shrink: 0;
+}
+.version-row input {
+  flex: 1;
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  outline: none;
+  transition: var(--transition);
+  max-width: 300px;
+}
+.version-row input:focus { border-color: var(--primary); }
+.version-row input:disabled { background: var(--bg); border-color: transparent; }
+.version-row .version-display { color: var(--text-secondary); padding: 6px 10px; }
+
+/* Category section */
+.category-section {
+  background: var(--card-bg);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  margin-bottom: 16px;
+  overflow: hidden;
+}
+.category-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  background: #f8fafc;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  user-select: none;
+}
+.category-header .collapse-icon { font-size: 12px; transition: transform 0.2s; }
+.category-header .collapse-icon.collapsed { transform: rotate(-90deg); }
+.category-header .cat-name { font-size: 15px; font-weight: 700; flex: 1; }
+.category-actions { display: flex; gap: 4px; }
+.category-actions button {
+  padding: 4px 8px;
+  border: none;
+  background: none;
+  color: var(--text-secondary);
+  font-size: 16px;
+  border-radius: var(--radius-sm);
+  transition: var(--transition);
+}
+.category-actions button:hover { background: var(--border); color: var(--text); }
+
+.category-items { padding: 0; }
+.category-items.collapsed { display: none; }
+
+/* Test item row */
+.item-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border);
+  transition: background 0.15s;
+}
+.item-row:hover { background: #f8fafc; }
+.item-row:last-child { border-bottom: none; }
+.item-drag-handle {
+  cursor: grab;
+  color: var(--na-color);
+  font-size: 14px;
+  padding: 2px 4px;
+  opacity: 0.4;
+}
+.item-drag-handle:hover { opacity: 1; }
+.item-name {
+  flex: 1;
+  font-size: 13px;
+  cursor: pointer;
+  font-weight: 500;
+  color: var(--text);
+  transition: var(--transition);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.item-name:hover { color: var(--primary); }
+.item-result-btns {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+.result-pill {
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 700;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: var(--transition);
+  background: var(--bg);
+  color: var(--text-secondary);
+}
+.result-pill:hover { opacity: 0.9; }
+.result-pill.active.pass { background: var(--success); color: white; border-color: var(--success); }
+.result-pill.active.fail { background: var(--fail); color: white; border-color: var(--fail); }
+.result-pill.active.na { background: var(--na-color); color: white; border-color: var(--na-color); }
+.result-pill.active.pending { background: white; color: var(--primary); border-color: var(--primary); }
+.result-pill:disabled { cursor: default; opacity: 0.7; }
+.item-notes-input {
+  width: 140px;
+  padding: 4px 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  outline: none;
+  flex-shrink: 0;
+}
+.item-notes-input:focus { border-color: var(--primary); }
+.item-notes-input:disabled { background: var(--bg); border-color: transparent; }
+.item-attachment-icon {
+  color: var(--text-secondary);
+  font-size: 14px;
+  flex-shrink: 0;
+}
+.item-delete-btn {
+  padding: 4px;
+  border: none;
+  background: none;
+  color: var(--text-secondary);
+  font-size: 14px;
+  border-radius: var(--radius-sm);
+  transition: var(--transition);
+  flex-shrink: 0;
+}
+.item-delete-btn:hover { background: #fef2f2; color: var(--fail); }
+.add-item-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 16px;
+  width: 100%;
+  border: none;
+  background: none;
+  color: var(--primary);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+}
+.add-item-btn:hover { background: #eff6ff; }
+.add-category-btn {
+  margin-top: 8px;
+}
+
+/* --- Feedback Panel --- */
+.feedback-panel {
+  width: 0;
+  overflow: hidden;
+  background: var(--card-bg);
+  border-left: 1px solid var(--border);
+  flex-shrink: 0;
+  transition: width 0.3s ease;
+  display: flex;
+  flex-direction: column;
+}
+.feedback-panel.open { width: var(--feedback-w); }
+.feedback-header {
+  padding: 16px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+.feedback-header h3 {
+  font-size: 15px;
+  font-weight: 700;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-right: 8px;
+}
+.feedback-close {
+  padding: 4px 8px;
+  border: none;
+  background: none;
+  font-size: 18px;
+  color: var(--text-secondary);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+.feedback-close:hover { background: var(--bg); }
+.feedback-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+}
+.comment-thread { margin-bottom: 16px; }
+.comment-item {
+  margin-bottom: 12px;
+  padding: 10px 12px;
+  background: var(--bg);
+  border-radius: var(--radius);
+  font-size: 13px;
+}
+.comment-item.reply {
+  margin-left: 24px;
+  border-left: 3px solid var(--primary);
+}
+.comment-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+  font-size: 12px;
+}
+.comment-author { font-weight: 700; color: var(--text); }
+.comment-time { color: var(--text-secondary); }
+.comment-content { line-height: 1.6; word-break: break-word; }
+.comment-content img {
+  max-width: 100%;
+  border-radius: var(--radius-sm);
+  margin-top: 8px;
+  cursor: pointer;
+}
+.comment-actions { margin-top: 6px; }
+.comment-reply-btn {
+  border: none;
+  background: none;
+  color: var(--primary);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 2px 0;
+}
+.feedback-input {
+  padding: 12px 16px;
+  border-top: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.feedback-input .reply-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  background: #eff6ff;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  margin-bottom: 8px;
+}
+.feedback-input .reply-indicator button {
+  border: none;
+  background: none;
+  font-size: 14px;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+.feedback-textarea {
+  width: 100%;
+  min-height: 72px;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  resize: vertical;
+  outline: none;
+  transition: var(--transition);
+}
+.feedback-textarea:focus { border-color: var(--primary); }
+.feedback-textarea.dragover { border-color: var(--primary); background: #eff6ff; }
+.feedback-send-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 8px;
+}
+.feedback-send-row .hint { font-size: 11px; color: var(--text-secondary); }
+
+/* --- Modal --- */
+.modal-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.modal {
+  background: var(--card-bg);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-lg);
+  width: 480px;
+  max-width: 90vw;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+.modal-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.modal-header h3 { font-size: 16px; font-weight: 700; }
+.modal-close {
+  border: none;
+  background: none;
+  font-size: 20px;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+.modal-body { padding: 20px; }
+.modal-footer {
+  padding: 12px 20px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+/* --- Admin Panel --- */
+.admin-panel { padding: 24px; }
+.admin-panel h2 { font-size: 20px; font-weight: 700; margin-bottom: 20px; }
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--card-bg);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+.admin-table th, .admin-table td {
+  padding: 10px 16px;
+  text-align: left;
+  font-size: 13px;
+  border-bottom: 1px solid var(--border);
+}
+.admin-table th {
+  background: #f8fafc;
+  font-weight: 700;
+  color: var(--text-secondary);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.admin-table select {
+  padding: 4px 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  outline: none;
+}
+.admin-table .badge-pending {
+  padding: 2px 8px;
+  background: #fef3c7;
+  color: #92400e;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 600;
+}
+.admin-table .badge-approved {
+  padding: 2px 8px;
+  background: #dcfce7;
+  color: #166534;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 600;
+}
+.admin-back-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 16px;
+  padding: 6px 12px;
+  border: 1px solid var(--border);
+  background: white;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  cursor: pointer;
+}
+
+/* --- Toast --- */
+.toast-container {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 2000;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.toast {
+  padding: 12px 20px;
+  background: var(--text);
+  color: white;
+  border-radius: var(--radius);
+  font-size: 13px;
+  box-shadow: var(--shadow-lg);
+  animation: toastIn 0.3s ease;
+  max-width: 360px;
+}
+.toast.error { background: var(--fail); }
+.toast.success { background: var(--success); }
+@keyframes toastIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+/* Image modal */
+.img-modal-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.85);
+  z-index: 3000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: zoom-out;
+}
+.img-modal-overlay img {
+  max-width: 90vw;
+  max-height: 90vh;
+  border-radius: 4px;
+}
+</style>
+</head>
+<body>
+
+<!-- ========== Auth Screen ========== -->
+<div id="auth-screen">
+  <div class="auth-card">
+    <div class="auth-header">
+      <h1>Smart Review Test Tracker</h1>
+      <p>SW 검증 테스트 관리 시스템</p>
+    </div>
+    <div class="auth-tabs">
+      <button class="auth-tab active" data-tab="login">로그인</button>
+      <button class="auth-tab" data-tab="register">회원가입</button>
+    </div>
+    <div class="auth-form" id="login-form">
+      <div class="form-group">
+        <label>사용자 ID</label>
+        <input type="text" id="login-username" placeholder="아이디를 입력하세요" autocomplete="username">
+      </div>
+      <div class="form-group">
+        <label>비밀번호</label>
+        <input type="password" id="login-password" placeholder="비밀번호를 입력하세요" autocomplete="current-password">
+      </div>
+      <button class="auth-btn" id="login-btn">로그인</button>
+      <div class="auth-error hidden" id="login-error"></div>
+    </div>
+    <div class="auth-form hidden" id="register-form">
+      <div class="form-group">
+        <label>사용자 ID</label>
+        <input type="text" id="reg-username" placeholder="아이디를 입력하세요" autocomplete="username">
+      </div>
+      <div class="form-group">
+        <label>표시 이름</label>
+        <input type="text" id="reg-display" placeholder="표시될 이름을 입력하세요">
+      </div>
+      <div class="form-group">
+        <label>비밀번호</label>
+        <input type="password" id="reg-password" placeholder="비밀번호를 입력하세요" autocomplete="new-password">
+      </div>
+      <button class="auth-btn" id="register-btn">회원가입</button>
+      <div class="auth-error hidden" id="register-error"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== Pending Screen ========== -->
+<div id="pending-screen" class="hidden">
+  <div class="pending-card">
+    <div class="icon">&#9203;</div>
+    <h2>승인 대기 중</h2>
+    <p>관리자 승인 대기 중입니다.<br>승인 후 시스템에 접근할 수 있습니다.</p>
+    <button class="back-btn" onclick="showAuth()">돌아가기</button>
+  </div>
+</div>
+
+<!-- ========== Main App ========== -->
+<div id="app-screen">
+  <!-- Header -->
+  <header class="app-header">
+    <div class="logo">
+      <svg viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Smart Review Test Tracker
+    </div>
+    <div class="header-actions">
+      <div class="online-indicator">
+        <span class="online-dot"></span>
+        <span id="online-count">0</span>명 접속
+      </div>
+      <div style="position:relative">
+        <button class="header-btn" id="notif-btn" title="알림">&#128276;
+          <span class="badge hidden" id="notif-badge">0</span>
+        </button>
+        <div class="notif-dropdown hidden" id="notif-dropdown"></div>
+      </div>
+      <div class="user-info">
+        <div class="user-avatar" id="user-avatar"></div>
+        <span id="user-display-name"></span>
+      </div>
+      <button class="logout-btn" id="logout-btn">로그아웃</button>
+    </div>
+  </header>
+
+  <!-- Body -->
+  <div class="app-body">
+    <!-- Sidebar -->
+    <nav class="sidebar" id="sidebar">
+      <div class="sidebar-section">
+        <div class="sidebar-section-title">
+          <span>&#9654; 진행 중</span>
+          <button id="new-session-btn" title="새 세션" class="hidden">+</button>
+        </div>
+        <div id="active-sessions"></div>
+      </div>
+      <div class="sidebar-section">
+        <div class="archive-toggle" id="archive-toggle">
+          <span class="arrow">&#9654;</span>
+          <span>&#128230; 기록 보관소</span>
+        </div>
+        <div id="archive-content" class="hidden">
+          <div class="archive-search">
+            <input type="text" id="archive-search-input" placeholder="세션 검색...">
+          </div>
+          <div id="archived-sessions"></div>
+        </div>
+      </div>
+      <div class="sidebar-section hidden" id="admin-sidebar-section">
+        <div class="sidebar-section-title"><span>&#9881; 관리</span></div>
+        <div class="sidebar-admin-link" id="admin-link">&#128101; 사용자 관리</div>
+      </div>
+    </nav>
+
+    <!-- Center -->
+    <main class="center-panel" id="center-panel">
+      <div class="empty-state" id="empty-state">
+        <div class="icon">&#128203;</div>
+        <h3>세션을 선택하세요</h3>
+        <p>좌측 패널에서 테스트 세션을 선택하거나 새로 생성하세요.</p>
+      </div>
+      <div id="session-content" class="hidden"></div>
+      <div id="admin-content" class="hidden"></div>
+    </main>
+
+    <!-- Feedback Panel -->
+    <aside class="feedback-panel" id="feedback-panel">
+      <div class="feedback-header">
+        <h3 id="feedback-item-name"></h3>
+        <button class="feedback-close" id="feedback-close-btn">&times;</button>
+      </div>
+      <div class="feedback-body" id="feedback-body">
+        <div class="comment-thread" id="comment-thread"></div>
+      </div>
+      <div class="feedback-input" id="feedback-input-area">
+        <div class="reply-indicator hidden" id="reply-indicator">
+          <span id="reply-to-label">답글 작성 중...</span>
+          <button id="cancel-reply">&times;</button>
+        </div>
+        <textarea class="feedback-textarea" id="comment-textarea" placeholder="댓글을 입력하세요... (Ctrl+V로 이미지 붙여넣기 가능)"></textarea>
+        <div class="feedback-send-row">
+          <span class="hint">이미지를 드래그하거나 Ctrl+V로 붙여넣기</span>
+          <button class="btn btn-primary btn-sm" id="send-comment-btn">전송</button>
+        </div>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<!-- Toast Container -->
+<div class="toast-container" id="toast-container"></div>
+
+<script>
+/* =================================================================
+   Smart Review Test Tracker — Single-Page Application
+   ================================================================= */
+
+// ── Global State ──
+const S = {
+  user: null,
+  sessions: { active: [], archived: [] },
+  currentSessionId: null,
+  currentSession: null,
+  currentItemId: null,
+  comments: [],
+  notifications: [],
+  onlineUsers: [],
+  socket: null,
+  view: 'session', // 'session' | 'admin'
+  archiveOpen: false,
+  archiveFilter: '',
+  replyTo: null,
+  _versionTimers: {},
+  _notesTimers: {},
+  _sortableInstances: [],
+};
+
+const ROLE_LEVEL = { viewer: 0, tester: 1, reviewer: 2, admin: 3 };
+
+function hasRole(min) { return S.user && ROLE_LEVEL[S.user.role] >= ROLE_LEVEL[min]; }
+
+// ── API helpers ──
+async function api(url, opts = {}) {
+  const o = { credentials: 'same-origin', headers: {}, ...opts };
+  if (opts.body && typeof opts.body === 'object' && !(opts.body instanceof FormData)) {
+    o.headers['Content-Type'] = 'application/json';
+    o.body = JSON.stringify(opts.body);
+  }
+  const res = await fetch(url, o);
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw { status: res.status, message: data.error || 'Unknown error' };
+  return data;
+}
+
+// ── Toast ──
+function toast(msg, type = 'info') {
+  const c = document.getElementById('toast-container');
+  const t = document.createElement('div');
+  t.className = 'toast ' + type;
+  t.textContent = msg;
+  c.appendChild(t);
+  setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 300); }, 3500);
+}
+
+// ── Screen management ──
+function showAuth() {
+  document.getElementById('auth-screen').classList.remove('hidden');
+  document.getElementById('pending-screen').classList.add('hidden');
+  document.getElementById('app-screen').classList.remove('active');
+}
+
+function showPending() {
+  document.getElementById('auth-screen').classList.add('hidden');
+  document.getElementById('pending-screen').classList.remove('hidden');
+  document.getElementById('app-screen').classList.remove('active');
+}
+
+function showApp() {
+  document.getElementById('auth-screen').classList.add('hidden');
+  document.getElementById('pending-screen').classList.add('hidden');
+  document.getElementById('app-screen').classList.add('active');
+  setupAfterLogin();
+}
+
+// ── Auth ──
+document.querySelectorAll('.auth-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    const isLogin = tab.dataset.tab === 'login';
+    document.getElementById('login-form').classList.toggle('hidden', !isLogin);
+    document.getElementById('register-form').classList.toggle('hidden', isLogin);
+  });
+});
+
+document.getElementById('login-btn').addEventListener('click', async () => {
+  const u = document.getElementById('login-username').value.trim();
+  const p = document.getElementById('login-password').value;
+  const errEl = document.getElementById('login-error');
+  errEl.classList.add('hidden');
+  if (!u || !p) { errEl.textContent = '아이디와 비밀번호를 입력하세요.'; errEl.classList.remove('hidden'); return; }
+  try {
+    S.user = await api('/api/auth/login', { method: 'POST', body: { username: u, password: p } });
+    showApp();
+  } catch (e) {
+    if (e.status === 403) { showPending(); return; }
+    errEl.textContent = e.message || '로그인 실패';
+    errEl.classList.remove('hidden');
+  }
+});
+
+document.getElementById('login-password').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('login-btn').click();
+});
+
+document.getElementById('register-btn').addEventListener('click', async () => {
+  const u = document.getElementById('reg-username').value.trim();
+  const d = document.getElementById('reg-display').value.trim();
+  const p = document.getElementById('reg-password').value;
+  const errEl = document.getElementById('register-error');
+  errEl.classList.add('hidden');
+  if (!u || !p) { errEl.textContent = '아이디와 비밀번호를 입력하세요.'; errEl.classList.remove('hidden'); return; }
+  try {
+    const user = await api('/api/auth/register', { method: 'POST', body: { username: u, password: p, display_name: d || u } });
+    if (user.status === 'pending') {
+      showPending();
+    } else {
+      // First user auto-approved admin, login them in
+      S.user = await api('/api/auth/login', { method: 'POST', body: { username: u, password: p } });
+      showApp();
+    }
+  } catch (e) {
+    errEl.textContent = e.message || '회원가입 실패';
+    errEl.classList.remove('hidden');
+  }
+});
+
+document.getElementById('reg-password').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('register-btn').click();
+});
+
+document.getElementById('logout-btn').addEventListener('click', async () => {
+  await api('/api/auth/logout', { method: 'POST' }).catch(() => {});
+  if (S.socket) { S.socket.disconnect(); S.socket = null; }
+  S.user = null;
+  S.currentSessionId = null;
+  S.currentSession = null;
+  S.currentItemId = null;
+  showAuth();
+});
+
+// ── Initial Check ──
+(async function init() {
+  try {
+    S.user = await api('/api/auth/me');
+    if (S.user.status === 'pending') { showPending(); return; }
+    showApp();
+  } catch { showAuth(); }
+})();
+
+// ── Setup after login ──
+async function setupAfterLogin() {
+  // User info
+  const avatar = document.getElementById('user-avatar');
+  avatar.textContent = (S.user.display_name || S.user.username || '?')[0].toUpperCase();
+  document.getElementById('user-display-name').textContent = S.user.display_name || S.user.username;
+
+  // Show new session btn for reviewer+
+  document.getElementById('new-session-btn').classList.toggle('hidden', !hasRole('reviewer'));
+
+  // Show admin section
+  document.getElementById('admin-sidebar-section').classList.toggle('hidden', !hasRole('admin'));
+
+  // Load sessions
+  await loadSessions();
+
+  // Notifications
+  loadNotifications();
+  setInterval(loadNotifications, 30000);
+
+  // Socket.IO
+  connectSocket();
+}
+
+// ── Sessions ──
+async function loadSessions() {
+  try {
+    S.sessions = await api('/api/sessions');
+    renderSidebar();
+  } catch (e) { toast('세션 목록 로드 실패', 'error'); }
+}
+
+function renderSidebar() {
+  // Active
+  const ac = document.getElementById('active-sessions');
+  ac.innerHTML = '';
+  S.sessions.active.forEach(s => {
+    ac.appendChild(createSessionEl(s));
+  });
+
+  // Archived
+  const ar = document.getElementById('archived-sessions');
+  ar.innerHTML = '';
+  const filter = S.archiveFilter.toLowerCase();
+  const filtered = filter ? S.sessions.archived.filter(s => s.name.toLowerCase().includes(filter)) : S.sessions.archived;
+  filtered.forEach(s => {
+    ar.appendChild(createSessionEl(s));
+  });
+}
+
+function createSessionEl(s) {
+  const el = document.createElement('div');
+  el.className = 'sidebar-session' + (S.currentSessionId === s.id ? ' active' : '');
+  el.innerHTML = `<span class="session-status-dot ${s.status}"></span><span class="name">${esc(s.name)}</span>`;
+  el.addEventListener('click', () => selectSession(s.id));
+  return el;
+}
+
+async function selectSession(id) {
+  S.currentSessionId = id;
+  S.view = 'session';
+  closeFeedback();
+  document.getElementById('empty-state').classList.add('hidden');
+  document.getElementById('session-content').classList.remove('hidden');
+  document.getElementById('admin-content').classList.add('hidden');
+  renderSidebar();
+  try {
+    S.currentSession = await api(`/api/sessions/${id}`);
+    renderSession();
+  } catch (e) {
+    toast('세션 로드 실패', 'error');
+  }
+}
+
+// ── Render Session ──
+function renderSession() {
+  const s = S.currentSession;
+  if (!s) return;
+  const isReadonly = s.status === 'completed';
+  const canEdit = hasRole('reviewer') && !isReadonly;
+  const canTest = hasRole('tester') && !isReadonly;
+
+  const statusLabels = { draft: '초안', in_progress: '진행 중', completed: '완료' };
+
+  let html = '';
+
+  // Header
+  html += `<div class="session-header">
+    <div style="display:flex;align-items:center;gap:12px;">
+      <h2 class="session-title">${esc(s.name)}</h2>
+      <span class="status-badge ${s.status}">${statusLabels[s.status] || s.status}</span>
+    </div>
+    <div class="session-controls">`;
+
+  if (s.status === 'draft' && hasRole('reviewer')) {
+    html += `<button class="btn btn-primary" onclick="changeStatus('in_progress')">테스트 시작</button>`;
+  } else if (s.status === 'in_progress' && hasRole('reviewer')) {
+    html += `<button class="btn btn-success" onclick="changeStatus('completed')">테스트 완료</button>`;
+  } else if (s.status === 'completed' && hasRole('admin')) {
+    html += `<button class="btn btn-warning" onclick="changeStatus('in_progress')">재오픈</button>`;
+  }
+  html += `</div></div>`;
+
+  // Progress
+  const items = (s.categories || []).flatMap(c => c.items || []);
+  const total = items.length;
+  const counts = { pass: 0, fail: 0, na: 0, pending: 0 };
+  items.forEach(i => { counts[i.result] = (counts[i.result] || 0) + 1; });
+
+  if (total > 0) {
+    const pctPass = (counts.pass / total * 100).toFixed(1);
+    const pctFail = (counts.fail / total * 100).toFixed(1);
+    const pctNA = (counts.na / total * 100).toFixed(1);
+    html += `<div class="progress-summary">
+      <div class="progress-bar-container">
+        <div class="progress-bar-segment pass" style="width:${pctPass}%"></div>
+        <div class="progress-bar-segment fail" style="width:${pctFail}%"></div>
+        <div class="progress-bar-segment na" style="width:${pctNA}%"></div>
+      </div>
+      <div class="progress-stats">
+        <div class="progress-stat"><span class="dot pass"></span>${counts.pass} Pass</div>
+        <div class="progress-stat"><span class="dot fail"></span>${counts.fail} Fail</div>
+        <div class="progress-stat"><span class="dot na"></span>${counts.na} N/A</div>
+        <div class="progress-stat"><span class="dot pending"></span>${counts.pending} 미진행</div>
+        <div class="progress-stat" style="color:var(--text-secondary);">총 ${total}</div>
+      </div>
+    </div>`;
+  }
+
+  // Version table
+  html += renderVersionTable(s.versions || [], canEdit, isReadonly);
+
+  // Categories
+  (s.categories || []).forEach(cat => {
+    html += renderCategory(cat, canEdit, canTest, isReadonly);
+  });
+
+  // Add category button
+  if (canEdit) {
+    html += `<button class="btn btn-outline add-category-btn" onclick="showAddCategoryModal()">+ 카테고리 추가</button>`;
+  }
+
+  document.getElementById('session-content').innerHTML = html;
+
+  // Setup drag-and-drop
+  if (canEdit) setupSortable();
+}
+
+function renderVersionTable(versions, canEdit, isReadonly) {
+  if (!versions.length) return '';
+  const groups = {};
+  const groupOrder = [];
+  versions.forEach(v => {
+    if (!groups[v.category_label]) { groups[v.category_label] = []; groupOrder.push(v.category_label); }
+    groups[v.category_label].push(v);
+  });
+  const icons = { 'Vision PC': '&#128230;', 'Review PC': '&#128203;', 'AI Model Management': '&#129302;' };
+
+  let html = `<div class="version-section"><h3>SW 버전 정보</h3>`;
+  groupOrder.forEach(label => {
+    html += `<div class="version-group-header">${icons[label] || ''} ${esc(label)}</div>`;
+    groups[label].forEach(v => {
+      html += `<div class="version-row">
+        <span class="sw-name">${esc(v.sw_name)}</span>`;
+      if (canEdit) {
+        html += `<input type="text" value="${esc(v.version_value)}" placeholder="버전 입력" data-vid="${v.id}" data-sid="${v.session_id}" onchange="onVersionChange(this)" oninput="debounceVersion(this)">`;
+      } else {
+        html += `<span class="version-display">${v.version_value ? esc(v.version_value) : '-'}</span>`;
+      }
+      html += `</div>`;
+    });
+  });
+  html += `</div>`;
+  return html;
+}
+
+function debounceVersion(el) {
+  const vid = el.dataset.vid;
+  clearTimeout(S._versionTimers[vid]);
+  S._versionTimers[vid] = setTimeout(() => onVersionChange(el), 300);
+}
+
+async function onVersionChange(el) {
+  const vid = el.dataset.vid;
+  const sid = el.dataset.sid;
+  clearTimeout(S._versionTimers[vid]);
+  try {
+    await api(`/api/sessions/${sid}/versions/${vid}`, { method: 'PUT', body: { version_value: el.value } });
+  } catch (e) { toast('버전 업데이트 실패', 'error'); }
+}
+
+function renderCategory(cat, canEdit, canTest, isReadonly) {
+  let html = `<div class="category-section" data-cat-id="${cat.id}">
+    <div class="category-header" onclick="toggleCategory(${cat.id})">
+      <span class="collapse-icon" id="collapse-icon-${cat.id}">&#9660;</span>
+      <span class="cat-name">${esc(cat.name)}</span>
+      ${cat.description ? `<span style="color:var(--text-secondary);font-size:12px;margin-left:8px;">${esc(cat.description)}</span>` : ''}`;
+  if (canEdit) {
+    html += `<div class="category-actions" onclick="event.stopPropagation()">
+      <button title="편집" onclick="showEditCategoryModal(${cat.id},'${escAttr(cat.name)}','${escAttr(cat.description || '')}')">&#9998;</button>
+      <button title="삭제" onclick="deleteCategory(${cat.id})">&#128465;</button>
+    </div>`;
+  }
+  html += `</div>`;
+  html += `<div class="category-items" id="items-${cat.id}">`;
+  (cat.items || []).forEach(item => {
+    html += renderItem(item, canEdit, canTest, isReadonly);
+  });
+  if (canEdit) {
+    html += `<button class="add-item-btn" onclick="showAddItemModal(${cat.id})">+ 항목 추가</button>`;
+  }
+  html += `</div></div>`;
+  return html;
+}
+
+function renderItem(item, canEdit, canTest, isReadonly) {
+  const results = ['pass', 'fail', 'na', 'pending'];
+  const labels = { pass: 'Pass', fail: 'Fail', na: 'N/A', pending: '미진행' };
+  let html = `<div class="item-row" data-item-id="${item.id}">`;
+  if (canEdit) {
+    html += `<span class="item-drag-handle" title="드래그하여 정렬">&#9776;</span>`;
+  }
+  html += `<span class="item-name" onclick="openFeedback(${item.id})" title="${esc(item.description || item.name)}">${esc(item.name)}</span>`;
+  html += `<div class="item-result-btns">`;
+  results.forEach(r => {
+    const active = item.result === r ? 'active ' + r : '';
+    const disabled = (!canTest && !canEdit) || isReadonly ? 'disabled' : '';
+    html += `<button class="result-pill ${active}" ${disabled} onclick="setResult(${item.id},'${r}')">${labels[r]}</button>`;
+  });
+  html += `</div>`;
+  if (canTest || canEdit) {
+    html += `<input class="item-notes-input" value="${esc(item.notes || '')}" placeholder="비고" ${isReadonly ? 'disabled' : ''} oninput="debounceNotes(this, ${item.id})" data-item-id="${item.id}">`;
+  } else {
+    html += `<span style="font-size:12px;color:var(--text-secondary);width:140px;flex-shrink:0;">${esc(item.notes || '-')}</span>`;
+  }
+  if (canEdit && !isReadonly) {
+    html += `<button class="item-delete-btn" onclick="deleteItem(${item.id})" title="삭제">&#128465;</button>`;
+  }
+  html += `</div>`;
+  return html;
+}
+
+// ── Item Actions ──
+async function setResult(itemId, result) {
+  try {
+    await api(`/api/items/${itemId}`, { method: 'PUT', body: { result } });
+  } catch (e) { toast(e.message || '결과 업데이트 실패', 'error'); }
+}
+
+function debounceNotes(el, itemId) {
+  clearTimeout(S._notesTimers[itemId]);
+  S._notesTimers[itemId] = setTimeout(async () => {
+    try {
+      await api(`/api/items/${itemId}`, { method: 'PUT', body: { notes: el.value } });
+    } catch (e) { toast('비고 업데이트 실패', 'error'); }
+  }, 300);
+}
+
+async function deleteItem(itemId) {
+  if (!confirm('이 항목을 삭제하시겠습니까?')) return;
+  try {
+    await api(`/api/items/${itemId}`, { method: 'DELETE' });
+  } catch (e) { toast(e.message || '삭제 실패', 'error'); }
+}
+
+async function deleteCategory(catId) {
+  if (!confirm('이 카테고리와 모든 항목을 삭제하시겠습니까?')) return;
+  try {
+    await api(`/api/categories/${catId}`, { method: 'DELETE' });
+    if (S.currentSessionId) selectSession(S.currentSessionId);
+  } catch (e) { toast(e.message || '삭제 실패', 'error'); }
+}
+
+function toggleCategory(catId) {
+  const items = document.getElementById('items-' + catId);
+  const icon = document.getElementById('collapse-icon-' + catId);
+  if (!items) return;
+  items.classList.toggle('collapsed');
+  icon.classList.toggle('collapsed');
+}
+
+// ── Status ──
+async function changeStatus(status) {
+  if (!S.currentSessionId) return;
+  try {
+    await api(`/api/sessions/${S.currentSessionId}/status`, { method: 'PUT', body: { status } });
+  } catch (e) { toast(e.message || '상태 변경 실패', 'error'); }
+}
+
+// ── Modals ──
+function showModal(title, bodyHtml, onSave) {
+  closeModal();
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay';
+  overlay.id = 'modal-overlay';
+  overlay.innerHTML = `<div class="modal">
+    <div class="modal-header"><h3>${title}</h3><button class="modal-close" onclick="closeModal()">&times;</button></div>
+    <div class="modal-body">${bodyHtml}</div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal()">취소</button>
+      <button class="btn btn-primary" id="modal-save-btn">확인</button>
+    </div>
+  </div>`;
+  document.body.appendChild(overlay);
+  overlay.addEventListener('click', e => { if (e.target === overlay) closeModal(); });
+  document.getElementById('modal-save-btn').addEventListener('click', onSave);
+  // Focus first input
+  const firstInput = overlay.querySelector('input, textarea');
+  if (firstInput) setTimeout(() => firstInput.focus(), 100);
+}
+
+function closeModal() {
+  const m = document.getElementById('modal-overlay');
+  if (m) m.remove();
+}
+
+function showAddCategoryModal() {
+  showModal('카테고리 추가',
+    `<div class="form-group"><label>카테고리명</label><input type="text" id="modal-cat-name" placeholder="카테고리명"></div>
+     <div class="form-group"><label>설명 (선택)</label><input type="text" id="modal-cat-desc" placeholder="설명"></div>`,
+    async () => {
+      const name = document.getElementById('modal-cat-name').value.trim();
+      const desc = document.getElementById('modal-cat-desc').value.trim();
+      if (!name) return toast('카테고리명을 입력하세요', 'error');
+      try {
+        await api(`/api/sessions/${S.currentSessionId}/categories`, { method: 'POST', body: { name, description: desc } });
+        closeModal();
+      } catch (e) { toast(e.message || '생성 실패', 'error'); }
+    }
+  );
+}
+
+function showEditCategoryModal(catId, name, desc) {
+  showModal('카테고리 편집',
+    `<div class="form-group"><label>카테고리명</label><input type="text" id="modal-cat-name" value="${escAttr(name)}"></div>
+     <div class="form-group"><label>설명</label><input type="text" id="modal-cat-desc" value="${escAttr(desc)}"></div>`,
+    async () => {
+      const n = document.getElementById('modal-cat-name').value.trim();
+      const d = document.getElementById('modal-cat-desc').value.trim();
+      if (!n) return toast('카테고리명을 입력하세요', 'error');
+      try {
+        await api(`/api/categories/${catId}`, { method: 'PUT', body: { name: n, description: d } });
+        closeModal();
+        if (S.currentSessionId) selectSession(S.currentSessionId);
+      } catch (e) { toast(e.message || '수정 실패', 'error'); }
+    }
+  );
+}
+
+function showAddItemModal(catId) {
+  showModal('항목 추가',
+    `<div class="form-group"><label>항목명</label><input type="text" id="modal-item-name" placeholder="테스트 항목명"></div>
+     <div class="form-group"><label>설명 (선택)</label><textarea id="modal-item-desc" placeholder="설명" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:4px;font-size:13px;resize:vertical;min-height:60px;"></textarea></div>`,
+    async () => {
+      const name = document.getElementById('modal-item-name').value.trim();
+      const desc = document.getElementById('modal-item-desc').value.trim();
+      if (!name) return toast('항목명을 입력하세요', 'error');
+      try {
+        await api(`/api/categories/${catId}/items`, { method: 'POST', body: { name, description: desc } });
+        closeModal();
+      } catch (e) { toast(e.message || '생성 실패', 'error'); }
+    }
+  );
+}
+
+// New session modal
+document.getElementById('new-session-btn').addEventListener('click', async () => {
+  // Load existing sessions for template
+  let templateOpts = '<option value="">없음 (빈 세션)</option>';
+  const all = [...S.sessions.active, ...S.sessions.archived];
+  all.forEach(s => { templateOpts += `<option value="${s.id}">${esc(s.name)}</option>`; });
+
+  showModal('새 세션 생성',
+    `<div class="form-group"><label>세션 이름</label><input type="text" id="modal-session-name" placeholder="예: 3D AOI v2.5.0 검증"></div>
+     <div class="form-group"><label>템플릿 (선택)</label><select id="modal-session-template" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:4px;font-size:13px;">${templateOpts}</select></div>`,
+    async () => {
+      const name = document.getElementById('modal-session-name').value.trim();
+      const tmpl = document.getElementById('modal-session-template').value;
+      if (!name) return toast('세션 이름을 입력하세요', 'error');
+      try {
+        await api('/api/sessions', { method: 'POST', body: { name, template_id: tmpl ? parseInt(tmpl) : null } });
+        closeModal();
+        toast('세션이 생성되었습니다.', 'success');
+      } catch (e) { toast(e.message || '생성 실패', 'error'); }
+    }
+  );
+});
+
+// ── Archive toggle ──
+document.getElementById('archive-toggle').addEventListener('click', () => {
+  S.archiveOpen = !S.archiveOpen;
+  document.getElementById('archive-content').classList.toggle('hidden', !S.archiveOpen);
+  document.querySelector('#archive-toggle .arrow').classList.toggle('open', S.archiveOpen);
+});
+
+document.getElementById('archive-search-input').addEventListener('input', e => {
+  S.archiveFilter = e.target.value;
+  renderSidebar();
+});
+
+// ── Admin ──
+document.getElementById('admin-link').addEventListener('click', () => {
+  S.view = 'admin';
+  S.currentSessionId = null;
+  closeFeedback();
+  document.getElementById('empty-state').classList.add('hidden');
+  document.getElementById('session-content').classList.add('hidden');
+  document.getElementById('admin-content').classList.remove('hidden');
+  renderSidebar();
+  loadAdmin();
+});
+
+async function loadAdmin() {
+  try {
+    const users = await api('/api/admin/users');
+    renderAdmin(users);
+  } catch (e) { toast('사용자 목록 로드 실패', 'error'); }
+}
+
+function renderAdmin(users) {
+  const roles = ['viewer', 'tester', 'reviewer', 'admin'];
+  const roleLabels = { viewer: '뷰어', tester: '테스터', reviewer: '리뷰어', admin: '관리자' };
+  let html = `<div class="admin-panel">
+    <button class="admin-back-btn" onclick="backToSession()">&#8592; 뒤로가기</button>
+    <h2>&#128101; 사용자 관리</h2>`;
+
+  // Pending users
+  const pending = users.filter(u => u.status === 'pending');
+  if (pending.length) {
+    html += `<h3 style="font-size:15px;margin-bottom:12px;">승인 대기 (${pending.length})</h3>
+      <table class="admin-table" style="margin-bottom:24px;"><thead><tr><th>사용자 ID</th><th>표시 이름</th><th>가입일</th><th>권한</th><th>작업</th></tr></thead><tbody>`;
+    pending.forEach(u => {
+      html += `<tr><td>${esc(u.username)}</td><td>${esc(u.display_name)}</td><td>${esc(u.created_at)}</td>
+        <td><select id="approve-role-${u.id}">${roles.map(r => `<option value="${r}"${r==='tester'?' selected':''}>${roleLabels[r]}</option>`).join('')}</select></td>
+        <td><button class="btn btn-primary btn-sm" onclick="approveUser(${u.id})">승인</button></td></tr>`;
+    });
+    html += `</tbody></table>`;
+  }
+
+  // All users
+  html += `<h3 style="font-size:15px;margin-bottom:12px;">전체 사용자 (${users.length})</h3>
+    <table class="admin-table"><thead><tr><th>사용자 ID</th><th>표시 이름</th><th>권한</th><th>상태</th><th>변경</th></tr></thead><tbody>`;
+  users.forEach(u => {
+    const statusBadge = u.status === 'approved' ? '<span class="badge-approved">승인됨</span>' : '<span class="badge-pending">대기</span>';
+    html += `<tr><td>${esc(u.username)}</td><td>${esc(u.display_name)}</td>
+      <td><select id="role-sel-${u.id}" onchange="changeRole(${u.id}, this.value)" ${u.id === S.user.id ? 'disabled' : ''}>
+        ${roles.map(r => `<option value="${r}"${u.role===r?' selected':''}>${roleLabels[r]}</option>`).join('')}
+      </select></td>
+      <td>${statusBadge}</td>
+      <td>${u.status === 'pending' ? `<button class="btn btn-primary btn-sm" onclick="approveUser(${u.id})">승인</button>` : '-'}</td></tr>`;
+  });
+  html += `</tbody></table></div>`;
+  document.getElementById('admin-content').innerHTML = html;
+}
+
+async function approveUser(userId) {
+  const sel = document.getElementById('approve-role-' + userId);
+  const role = sel ? sel.value : 'tester';
+  try {
+    await api('/api/admin/approve', { method: 'POST', body: { user_id: userId, role } });
+    toast('사용자가 승인되었습니다.', 'success');
+    loadAdmin();
+  } catch (e) { toast(e.message || '승인 실패', 'error'); }
+}
+
+async function changeRole(userId, role) {
+  try {
+    await api('/api/admin/role', { method: 'POST', body: { user_id: userId, role } });
+    toast('권한이 변경되었습니다.', 'success');
+  } catch (e) { toast(e.message || '권한 변경 실패', 'error'); }
+}
+
+function backToSession() {
+  S.view = 'session';
+  document.getElementById('admin-content').classList.add('hidden');
+  if (S.currentSessionId) {
+    selectSession(S.currentSessionId);
+  } else {
+    document.getElementById('empty-state').classList.remove('hidden');
+    document.getElementById('session-content').classList.add('hidden');
+  }
+}
+
+// ── Feedback Panel ──
+async function openFeedback(itemId) {
+  S.currentItemId = itemId;
+  S.replyTo = null;
+  document.getElementById('reply-indicator').classList.add('hidden');
+  document.getElementById('feedback-panel').classList.add('open');
+  // Find item name
+  const item = findItem(itemId);
+  document.getElementById('feedback-item-name').textContent = item ? item.name : '항목';
+  // Load comments
+  await loadComments(itemId);
+  // Show/hide input
+  const s = S.currentSession;
+  const canComment = hasRole('tester') && s && s.status !== 'completed';
+  document.getElementById('feedback-input-area').classList.toggle('hidden', !canComment);
+}
+
+function closeFeedback() {
+  S.currentItemId = null;
+  document.getElementById('feedback-panel').classList.remove('open');
+}
+
+document.getElementById('feedback-close-btn').addEventListener('click', closeFeedback);
+
+async function loadComments(itemId) {
+  try {
+    S.comments = await api(`/api/items/${itemId}/comments`);
+    renderComments();
+  } catch (e) { toast('댓글 로드 실패', 'error'); }
+}
+
+function renderComments() {
+  const ct = document.getElementById('comment-thread');
+  if (!S.comments.length) {
+    ct.innerHTML = '<div style="text-align:center;color:var(--text-secondary);font-size:13px;padding:24px;">아직 댓글이 없습니다.</div>';
+    return;
+  }
+  // Build tree
+  const topLevel = S.comments.filter(c => !c.parent_id);
+  const replies = {};
+  S.comments.forEach(c => {
+    if (c.parent_id) {
+      if (!replies[c.parent_id]) replies[c.parent_id] = [];
+      replies[c.parent_id].push(c);
+    }
+  });
+
+  let html = '';
+  topLevel.forEach(c => {
+    html += renderComment(c, false);
+    (replies[c.id] || []).forEach(r => {
+      html += renderComment(r, true);
+    });
+  });
+  ct.innerHTML = html;
+
+  // Image click => lightbox
+  ct.querySelectorAll('.comment-content img').forEach(img => {
+    img.addEventListener('click', () => showImageLightbox(img.src));
+  });
+}
+
+function renderComment(c, isReply) {
+  const content = renderCommentContent(c.content, c.attachments || []);
+  return `<div class="comment-item ${isReply ? 'reply' : ''}">
+    <div class="comment-meta">
+      <span class="comment-author">${esc(c.author_name || c.created_by)}</span>
+      <span class="comment-time">${formatTime(c.created_at)}</span>
+    </div>
+    <div class="comment-content">${content}</div>
+    <div class="comment-actions">
+      <button class="comment-reply-btn" onclick="setReplyTo(${c.id}, '${escAttr(c.author_name || c.created_by)}')">답글</button>
+    </div>
+  </div>`;
+}
+
+function renderCommentContent(text, attachments) {
+  // Replace [IMG:url] patterns with actual images
+  let html = esc(text).replace(/\[IMG:(\/uploads\/[^\]]+)\]/g, '<img src="$1" alt="image" style="max-width:100%;border-radius:4px;margin-top:8px;">');
+  // Also render attachments as images
+  attachments.forEach(a => {
+    html += `<br><img src="/uploads/${esc(a.filename)}" alt="${esc(a.original_name)}" style="max-width:100%;border-radius:4px;margin-top:8px;">`;
+  });
+  // Replace newlines with <br>
+  html = html.replace(/\n/g, '<br>');
+  return html;
+}
+
+function setReplyTo(commentId, authorName) {
+  S.replyTo = commentId;
+  document.getElementById('reply-indicator').classList.remove('hidden');
+  document.getElementById('reply-to-label').textContent = `${authorName}님에게 답글`;
+  document.getElementById('comment-textarea').focus();
+}
+
+document.getElementById('cancel-reply').addEventListener('click', () => {
+  S.replyTo = null;
+  document.getElementById('reply-indicator').classList.add('hidden');
+});
+
+document.getElementById('send-comment-btn').addEventListener('click', sendComment);
+
+async function sendComment() {
+  const textarea = document.getElementById('comment-textarea');
+  const content = textarea.value.trim();
+  if (!content || !S.currentItemId) return;
+  try {
+    await api(`/api/items/${S.currentItemId}/comments`, {
+      method: 'POST',
+      body: { content, parent_id: S.replyTo || null }
+    });
+    textarea.value = '';
+    S.replyTo = null;
+    document.getElementById('reply-indicator').classList.add('hidden');
+  } catch (e) { toast(e.message || '댓글 작성 실패', 'error'); }
+}
+
+document.getElementById('comment-textarea').addEventListener('keydown', e => {
+  if (e.key === 'Enter' && e.ctrlKey) sendComment();
+});
+
+// Image paste
+document.getElementById('comment-textarea').addEventListener('paste', async e => {
+  const items = e.clipboardData?.items;
+  if (!items) return;
+  for (const item of items) {
+    if (item.type.startsWith('image/')) {
+      e.preventDefault();
+      const file = item.getAsFile();
+      await uploadAndInsertImage(file);
+      break;
+    }
+  }
+});
+
+// Drag-and-drop on textarea
+const commentTA = document.getElementById('comment-textarea');
+commentTA.addEventListener('dragover', e => { e.preventDefault(); commentTA.classList.add('dragover'); });
+commentTA.addEventListener('dragleave', () => commentTA.classList.remove('dragover'));
+commentTA.addEventListener('drop', async e => {
+  e.preventDefault();
+  commentTA.classList.remove('dragover');
+  const files = e.dataTransfer?.files;
+  if (files) {
+    for (const f of files) {
+      if (f.type.startsWith('image/')) {
+        await uploadAndInsertImage(f);
+      }
+    }
+  }
+});
+
+async function uploadAndInsertImage(file) {
+  const fd = new FormData();
+  fd.append('file', file);
+  if (S.currentItemId) fd.append('item_id', S.currentItemId);
+  try {
+    const res = await api('/api/upload', { method: 'POST', body: fd });
+    const textarea = document.getElementById('comment-textarea');
+    textarea.value += (textarea.value ? '\n' : '') + `[IMG:${res.url}]`;
+    textarea.focus();
+    toast('이미지가 업로드되었습니다.', 'success');
+  } catch (e) { toast(e.message || '이미지 업로드 실패', 'error'); }
+}
+
+function showImageLightbox(src) {
+  const overlay = document.createElement('div');
+  overlay.className = 'img-modal-overlay';
+  overlay.innerHTML = `<img src="${src}">`;
+  overlay.addEventListener('click', () => overlay.remove());
+  document.body.appendChild(overlay);
+}
+
+// ── Notifications ──
+async function loadNotifications() {
+  try {
+    S.notifications = await api('/api/notifications');
+    const badge = document.getElementById('notif-badge');
+    if (S.notifications.length > 0) {
+      badge.textContent = S.notifications.length;
+      badge.classList.remove('hidden');
+    } else {
+      badge.classList.add('hidden');
+    }
+  } catch {}
+}
+
+document.getElementById('notif-btn').addEventListener('click', e => {
+  e.stopPropagation();
+  const dd = document.getElementById('notif-dropdown');
+  dd.classList.toggle('hidden');
+  if (!dd.classList.contains('hidden')) renderNotifDropdown();
+});
+
+document.addEventListener('click', e => {
+  const dd = document.getElementById('notif-dropdown');
+  if (!dd.contains(e.target) && e.target.id !== 'notif-btn') {
+    dd.classList.add('hidden');
+  }
+});
+
+function renderNotifDropdown() {
+  const dd = document.getElementById('notif-dropdown');
+  if (!S.notifications.length) {
+    dd.innerHTML = '<div class="notif-empty">알림이 없습니다.</div>';
+    return;
+  }
+  let html = `<div class="notif-dropdown-header"><span>알림 (${S.notifications.length})</span><button onclick="markAllRead()">모두 읽음 처리</button></div>`;
+  S.notifications.forEach(n => {
+    html += `<div class="notif-item" onclick="onNotifClick(${n.target_item_id || 0})">
+      <div>${esc(n.message)}</div>
+      <div class="time">${formatTime(n.created_at)}</div>
+    </div>`;
+  });
+  dd.innerHTML = html;
+}
+
+async function markAllRead() {
+  try {
+    await api('/api/notifications/read', { method: 'POST' });
+    S.notifications = [];
+    document.getElementById('notif-badge').classList.add('hidden');
+    document.getElementById('notif-dropdown').classList.add('hidden');
+    toast('모두 읽음 처리 완료', 'success');
+  } catch {}
+}
+
+function onNotifClick(itemId) {
+  document.getElementById('notif-dropdown').classList.add('hidden');
+  if (itemId) openFeedback(itemId);
+}
+
+// ── Socket.IO ──
+function connectSocket() {
+  if (S.socket) S.socket.disconnect();
+  S.socket = io({ transports: ['websocket', 'polling'] });
+
+  S.socket.on('connect', () => {});
+
+  S.socket.on('session_created', sess => {
+    loadSessions();
+    toast(`새 세션: ${sess.name}`, 'info');
+  });
+
+  S.socket.on('session_updated', sess => {
+    loadSessions();
+    if (S.currentSessionId === sess.id) {
+      S.currentSession = sess;
+      // Need to reload categories too
+      api(`/api/sessions/${sess.id}`).then(full => {
+        S.currentSession = full;
+        renderSession();
+      }).catch(() => {});
+    }
+  });
+
+  S.socket.on('version_updated', sess => {
+    if (S.currentSessionId === sess.id) {
+      S.currentSession.versions = sess.versions;
+      // Only re-render version table if not currently editing
+      // Full re-render for simplicity
+    }
+  });
+
+  S.socket.on('categories_updated', data => {
+    if (S.currentSessionId === data.session_id) {
+      S.currentSession.categories = data.categories;
+      renderSession();
+    }
+  });
+
+  S.socket.on('item_created', item => {
+    if (S.currentSession) {
+      const cat = (S.currentSession.categories || []).find(c => c.id === item.category_id);
+      if (cat) {
+        if (!cat.items) cat.items = [];
+        cat.items.push(item);
+        renderSession();
+      }
+    }
+  });
+
+  S.socket.on('item_updated', item => {
+    if (S.currentSession) {
+      const cat = (S.currentSession.categories || []).find(c => c.id === item.category_id);
+      if (cat) {
+        const idx = (cat.items || []).findIndex(i => i.id === item.id);
+        if (idx >= 0) {
+          cat.items[idx] = item;
+          renderSession();
+        }
+      }
+    }
+  });
+
+  S.socket.on('item_deleted', data => {
+    if (S.currentSession) {
+      (S.currentSession.categories || []).forEach(cat => {
+        cat.items = (cat.items || []).filter(i => i.id !== data.id);
+      });
+      renderSession();
+      if (S.currentItemId === data.id) closeFeedback();
+    }
+  });
+
+  S.socket.on('comments_updated', data => {
+    if (S.currentItemId === data.item_id) {
+      S.comments = data.comments;
+      renderComments();
+    }
+  });
+
+  S.socket.on('online_users', users => {
+    S.onlineUsers = [...new Set(users)];
+    document.getElementById('online-count').textContent = S.onlineUsers.length;
+  });
+}
+
+// ── SortableJS ──
+function setupSortable() {
+  S._sortableInstances.forEach(s => s.destroy());
+  S._sortableInstances = [];
+
+  // Sortable for categories (by drag handle at section level)
+  // For simplicity, we make item lists sortable
+  if (!S.currentSession) return;
+
+  (S.currentSession.categories || []).forEach(cat => {
+    const el = document.getElementById('items-' + cat.id);
+    if (!el) return;
+    const sortable = new Sortable(el, {
+      handle: '.item-drag-handle',
+      animation: 150,
+      ghostClass: 'sortable-ghost',
+      filter: '.add-item-btn',
+      onEnd: async evt => {
+        const rows = el.querySelectorAll('.item-row');
+        const ordered_ids = Array.from(rows).map(r => parseInt(r.dataset.itemId));
+        try {
+          await api(`/api/categories/${cat.id}/items/reorder`, { method: 'PUT', body: { ordered_ids } });
+        } catch (e) { toast('정렬 저장 실패', 'error'); }
+      }
+    });
+    S._sortableInstances.push(sortable);
+  });
+}
+
+// ── Helpers ──
+function findItem(itemId) {
+  if (!S.currentSession) return null;
+  for (const cat of (S.currentSession.categories || [])) {
+    for (const item of (cat.items || [])) {
+      if (item.id === itemId) return item;
+    }
+  }
+  return null;
+}
+
+function esc(s) {
+  if (s == null) return '';
+  const div = document.createElement('div');
+  div.textContent = String(s);
+  return div.innerHTML;
+}
+
+function escAttr(s) {
+  return esc(s).replace(/'/g, '&#39;').replace(/"/g, '&quot;');
+}
+
+function formatTime(t) {
+  if (!t) return '';
+  try {
+    const d = new Date(t + (t.includes('Z') || t.includes('+') ? '' : 'Z'));
+    const now = new Date();
+    const diff = (now - d) / 1000;
+    if (diff < 60) return '방금 전';
+    if (diff < 3600) return `${Math.floor(diff / 60)}분 전`;
+    if (diff < 86400) return `${Math.floor(diff / 3600)}시간 전`;
+    return d.toLocaleDateString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit' });
+  } catch { return t; }
+}
+</script>
+</body>
 </html>

@@ -63,13 +63,12 @@ def client():
 
 
 def test_create_session(client):
-    """POST /api/sessions creates a session with name, active status, and 10 version entries."""
+    """POST /api/sessions creates a session with name, draft status, and 10 version entries."""
     resp = client.post("/api/sessions", json={"name": "SR 2.10 Test"})
     assert resp.status_code == 201
     data = resp.get_json()
     assert data["name"] == "SR 2.10 Test"
-    # models.create_session inserts with status 'active'
-    assert data["status"] == "active"
+    assert data["status"] == "draft"
     assert len(data["versions"]) == 10
 
 
@@ -90,7 +89,7 @@ def test_session_has_correct_sw_structure(client):
 
 
 def test_session_status_flow(client):
-    """Session moves through: active → in_progress → completed."""
+    """Session moves through: draft → in_progress → completed."""
     create_resp = client.post("/api/sessions", json={"name": "Status Flow"})
     assert create_resp.status_code == 201
     session_id = create_resp.get_json()["id"]
