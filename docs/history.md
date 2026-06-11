@@ -1,5 +1,23 @@
 # Smart Review Version Portal - 변경 히스토리
 
+## 2026-06-11
+
+### Smart Review Test Tracker 신규 개발
+- **파일 (신규 생성)**:
+  - `tracker/models.py` — SQLite DB 스키마 + CRUD (users, sessions, categories, test_items, comments, attachments, notifications)
+  - `tracker/app.py` — Flask + SocketIO 서버, 25+ REST API, WebSocket 실시간 동기화
+  - `tracker/templates/index.html` — 단일 페이지 프론트엔드 (2,190줄, 3패널 레이아웃)
+  - `tracker/requirements.txt` — flask==3.1.3, flask-socketio==5.6.1, pytest==8.3.5
+  - `tracker/tests/conftest.py` — pytest 픽스처
+  - `tracker/tests/test_auth.py` — 인증 테스트 6개
+  - `tracker/tests/test_sessions.py` — 세션 테스트 5개
+  - `tracker/tests/test_items.py` — 항목 테스트 5개
+  - `tracker/start_tracker.bat` — 실행 스크립트
+  - `tracker/TrackerServer.spec` — PyInstaller 빌드 스펙
+  - `docs/superpowers/specs/2026-06-11-smart-review-test-tracker-design.md` — 설계 문서
+  - `docs/superpowers/plans/2026-06-11-smart-review-test-tracker.md` — 구현 계획
+- **변경**: 전체 16개 테스트 통과, E2E 브라우저 테스트 완료
+
 ## 2026-06-10
 
 ### HTML 원격 로딩 구조 개선 + server 폴더 통합
