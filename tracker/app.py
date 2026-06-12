@@ -303,6 +303,22 @@ def sessions_get(session_id):
     return jsonify(sess)
 
 
+@app.route("/api/sessions/<int:session_id>/name", methods=["PUT"])
+@require_role("reviewer")
+def sessions_update_name(session_id):
+    data = request.get_json(silent=True) or {}
+    name = (data.get("name") or "").strip()
+    if not name:
+        return jsonify({"error": "name required"}), 400
+    sess = models.get_session(DB_PATH, session_id)
+    if not sess:
+        return jsonify({"error": "Not found"}), 404
+    models.update_session_name(DB_PATH, session_id, name)
+    updated = models.get_session(DB_PATH, session_id)
+    socketio.emit("session_updated", updated, room="tracker")
+    return jsonify(updated)
+
+
 @app.route("/api/sessions/<int:session_id>/status", methods=["PUT"])
 @require_role("reviewer")
 def sessions_update_status(session_id):
@@ -316,10 +332,10 @@ def sessions_update_status(session_id):
     if not sess:
         return jsonify({"error": "Not found"}), 404
 
-    # Only admin can reopen a completed session
+    # Reviewer+ can change session status (including reopening completed)
     if sess.get("status") == "completed" and new_status != "completed":
-        if ROLE_LEVELS.get(request.user.get("role", "viewer"), 0) < ROLE_LEVELS["admin"]:
-            return jsonify({"error": "Only admin can reopen a completed session"}), 403
+        if ROLE_LEVELS.get(request.user.get("role", "viewer"), 0) < ROLE_LEVELS["reviewer"]:
+            return jsonify({"error": "Reviewer+ can reopen a completed session"}), 403
 
     models.update_session_status(DB_PATH, session_id, new_status)
     updated = models.get_session(DB_PATH, session_id)

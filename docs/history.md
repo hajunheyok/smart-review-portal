@@ -1,5 +1,14 @@
 # Smart Review Version Portal - 변경 히스토리
 
+## 2026-06-12
+
+### Smart Review Test Tracker UI 개선
+- **파일**: `tracker/models.py`, `tracker/app.py`, `tracker/templates/index.html`
+- **변경**:
+  1. `models.py` — `DEFAULT_TEST_ITEMS` 상수 추가 (3카테고리 16항목 기본 템플릿), `create_session()`에서 자동 생성, `update_session_name()` 함수 추가
+  2. `app.py` — `PUT /api/sessions/<id>/name` 엔드포인트 추가, completed 세션 재오픈 권한 admin→reviewer로 완화
+  3. `index.html` — 상태 버튼→드롭다운 변경, 제목 인라인 편집(클릭→input→blur/enter 저장), Fail→NG 라벨 변경, 드롭다운/편집 CSS 추가
+
 ## 2026-06-11
 
 ### Smart Review Test Tracker 신규 개발

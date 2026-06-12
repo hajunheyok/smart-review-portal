@@ -23,6 +23,35 @@ SW_VERSION_TEMPLATE = [
     ("AI Model Management", "AI Model Management Tool"),
 ]
 
+# ---------------------------------------------------------------------------
+# Default test item template — auto-populated on new session creation
+# ---------------------------------------------------------------------------
+DEFAULT_TEST_ITEMS = [
+    # (category_name, [item_names])
+    ("Vision PC — AOIGUI", [
+        "자동 검사 CT 증가 이상여부",
+        "메뉴얼 검사 행 여부",
+        "Smart Save 기능 정상 여부",
+        "Teaching 시 이상 동작 여부",
+        "Feedback 적용 파트 정상 동작 여부",
+    ]),
+    ("Review PC", [
+        "Review Station 3 UI",
+        "행 발생",
+        "각 버튼 활성화 및 정상 동작 여부",
+        "Distribution Chart 이상 여부",
+        "SmartGate 정상 동작 여부",
+        "검사조건별 성능",
+    ]),
+    ("AI Model Management Tool", [
+        "Validation 정상 동작 여부",
+        "Debugging Tap 정상 동작 여부",
+        "AI Performance 정상 동작 여부",
+        "AI History 추출 및 결과 확인",
+        "Smart KPI 관련 항목 점검",
+    ]),
+]
+
 
 # ---------------------------------------------------------------------------
 # Internal helpers
@@ -262,8 +291,8 @@ def get_pending_users(db_path: str) -> list:
 
 def create_session(db_path: str, name: str, created_by: str) -> int:
     """
-    Create a new test session and auto-populate 10 SW version rows from the
-    template. Returns the new session id.
+    Create a new test session, auto-populate 10 SW version rows and default
+    test categories/items from the template. Returns the new session id.
     """
     conn = _conn(db_path)
     try:
@@ -273,6 +302,7 @@ def create_session(db_path: str, name: str, created_by: str) -> int:
                 (name, created_by, _now()),
             )
             session_id = cur.lastrowid
+            now = _now()
             for idx, (cat_label, sw_name) in enumerate(SW_VERSION_TEMPLATE):
                 conn.execute(
                     """
@@ -282,6 +312,26 @@ def create_session(db_path: str, name: str, created_by: str) -> int:
                     """,
                     (session_id, cat_label, sw_name, idx),
                 )
+            for cat_idx, (cat_name, items) in enumerate(DEFAULT_TEST_ITEMS):
+                cur2 = conn.execute(
+                    """
+                    INSERT INTO categories
+                        (session_id, name, description, sort_order, created_by, created_at)
+                    VALUES (?, ?, '', ?, ?, ?)
+                    """,
+                    (session_id, cat_name, cat_idx, created_by, now),
+                )
+                cat_id = cur2.lastrowid
+                for item_idx, item_name in enumerate(items):
+                    conn.execute(
+                        """
+                        INSERT INTO test_items
+                            (category_id, name, description, result, notes,
+                             sort_order, created_by, created_at)
+                        VALUES (?, ?, '', 'pending', '', ?, ?, ?)
+                        """,
+                        (cat_id, item_name, item_idx, created_by, now),
+                    )
         return session_id
     finally:
         conn.close()
@@ -321,6 +371,14 @@ def get_sessions_by_status(db_path: str, statuses: list) -> list:
         return [dict(r) for r in rows]
     finally:
         conn.close()
+
+
+def update_session_name(db_path: str, session_id: int, name: str) -> None:
+    """Update session name (inline title editing)."""
+    conn = _conn(db_path)
+    with conn:
+        conn.execute("UPDATE sessions SET name = ? WHERE id = ?", (name, session_id))
+    conn.close()
 
 
 def update_session_status(db_path: str, session_id: int, status: str) -> None:

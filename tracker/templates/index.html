@@ -471,6 +471,28 @@ a { text-decoration: none; color: inherit; }
   font-size: 22px;
   font-weight: 700;
 }
+.session-title.editable {
+  cursor: pointer;
+  border-bottom: 2px dashed transparent;
+  transition: border-color 0.2s;
+}
+.session-title.editable:hover {
+  border-bottom-color: var(--primary);
+}
+.status-dropdown {
+  padding: 4px 10px;
+  border-radius: 20px;
+  border: 2px solid var(--border);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.status-dropdown:focus { border-color: var(--primary); }
+.status-dropdown.draft { background: #e3f2fd; color: #1565c0; border-color: #90caf9; }
+.status-dropdown.in_progress { background: #fff3e0; color: #e65100; border-color: #ffcc80; }
+.status-dropdown.completed { background: #e8f5e9; color: #2e7d32; border-color: #a5d6a7; }
 .session-controls {
   display: flex;
   align-items: center;
@@ -1405,21 +1427,21 @@ function renderSession() {
   let html = '';
 
   // Header
+  const titleEditable = hasRole('reviewer');
   html += `<div class="session-header">
     <div style="display:flex;align-items:center;gap:12px;">
-      <h2 class="session-title">${esc(s.name)}</h2>
-      <span class="status-badge ${s.status}">${statusLabels[s.status] || s.status}</span>
-    </div>
-    <div class="session-controls">`;
-
-  if (s.status === 'draft' && hasRole('reviewer')) {
-    html += `<button class="btn btn-primary" onclick="changeStatus('in_progress')">테스트 시작</button>`;
-  } else if (s.status === 'in_progress' && hasRole('reviewer')) {
-    html += `<button class="btn btn-success" onclick="changeStatus('completed')">테스트 완료</button>`;
-  } else if (s.status === 'completed' && hasRole('admin')) {
-    html += `<button class="btn btn-warning" onclick="changeStatus('in_progress')">재오픈</button>`;
+      <h2 class="session-title${titleEditable ? ' editable' : ''}" ${titleEditable ? `onclick="startEditTitle(this, ${s.id})"` : ''}>${esc(s.name)}</h2>`;
+  if (hasRole('reviewer')) {
+    html += `<select class="status-dropdown ${s.status}" onchange="changeStatus(this.value)">
+        <option value="draft"${s.status==='draft'?' selected':''}>초안</option>
+        <option value="in_progress"${s.status==='in_progress'?' selected':''}>진행 중</option>
+        <option value="completed"${s.status==='completed'?' selected':''}>완료</option>
+      </select>`;
+  } else {
+    html += `<span class="status-badge ${s.status}">${statusLabels[s.status] || s.status}</span>`;
   }
-  html += `</div></div>`;
+  html += `</div>
+    <div class="session-controls"></div></div>`;
 
   // Progress
   const items = (s.categories || []).flatMap(c => c.items || []);
@@ -1439,7 +1461,7 @@ function renderSession() {
       </div>
       <div class="progress-stats">
         <div class="progress-stat"><span class="dot pass"></span>${counts.pass} Pass</div>
-        <div class="progress-stat"><span class="dot fail"></span>${counts.fail} Fail</div>
+        <div class="progress-stat"><span class="dot fail"></span>${counts.fail} NG</div>
         <div class="progress-stat"><span class="dot na"></span>${counts.na} N/A</div>
         <div class="progress-stat"><span class="dot pending"></span>${counts.pending} 미진행</div>
         <div class="progress-stat" style="color:var(--text-secondary);">총 ${total}</div>
@@ -1535,7 +1557,7 @@ function renderCategory(cat, canEdit, canTest, isReadonly) {
 
 function renderItem(item, canEdit, canTest, isReadonly) {
   const results = ['pass', 'fail', 'na', 'pending'];
-  const labels = { pass: 'Pass', fail: 'Fail', na: 'N/A', pending: '미진행' };
+  const labels = { pass: 'Pass', fail: 'NG', na: 'N/A', pending: '미진행' };
   let html = `<div class="item-row" data-item-id="${item.id}">`;
   if (canEdit) {
     html += `<span class="item-drag-handle" title="드래그하여 정렬">&#9776;</span>`;
@@ -1605,6 +1627,29 @@ async function changeStatus(status) {
   try {
     await api(`/api/sessions/${S.currentSessionId}/status`, { method: 'PUT', body: { status } });
   } catch (e) { toast(e.message || '상태 변경 실패', 'error'); }
+}
+
+function startEditTitle(el, sessionId) {
+  const current = el.textContent;
+  const input = document.createElement('input');
+  input.type = 'text';
+  input.value = current;
+  input.className = 'title-edit-input';
+  input.style.cssText = 'font-size:inherit;font-weight:inherit;border:2px solid var(--primary);border-radius:6px;padding:2px 8px;outline:none;width:300px;';
+  el.replaceWith(input);
+  input.focus();
+  input.select();
+  const save = async () => {
+    const val = input.value.trim();
+    if (val && val !== current) {
+      try {
+        await api(`/api/sessions/${sessionId}/name`, { method: 'PUT', body: { name: val } });
+      } catch (e) { toast(e.message || '제목 변경 실패', 'error'); }
+    }
+    renderSession();
+  };
+  input.addEventListener('blur', save);
+  input.addEventListener('keydown', e => { if (e.key === 'Enter') input.blur(); if (e.key === 'Escape') { input.value = current; input.blur(); } });
 }
 
 // ── Modals ──
