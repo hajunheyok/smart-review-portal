@@ -1494,6 +1494,7 @@ var ANALYTICS_URL = 'http://10.4.10.140:9090/api/event';
 function trackDownload(swName) {
   var site = '';
   try { site = localStorage.getItem('portal_site') || ''; } catch(e) {}
+  if (!site) site = 'UNKNOWN';
   var body = JSON.stringify({site: site, action: 'download', sw: swName});
   try {
     fetch(ANALYTICS_URL, {method:'POST', headers:{'Content-Type':'application/json'}, body: body}).catch(function(){});
