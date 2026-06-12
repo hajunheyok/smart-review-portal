@@ -321,6 +321,13 @@ class AppApi:
             target=send_event, args=(config, "launch"), daemon=True
         ).start()
 
+    def track_download(self, sw_name):
+        config = load_config()
+        if config.get("site"):
+            threading.Thread(
+                target=send_event, args=(config, "download", sw_name), daemon=True
+            ).start()
+
 
 def load_html(config):
     """Load HTML with remote-first fallback: remote → cache → local bundle."""

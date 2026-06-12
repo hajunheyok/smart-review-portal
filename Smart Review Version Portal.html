@@ -921,12 +921,12 @@ function renderPortal() {
 
     var dlBtn;
     if (sw.link) {
-      dlBtn = '<a class="download-btn" href="' + esc(sw.link) + '" target="_blank">⬇ Download</a>';
+      dlBtn = '<a class="download-btn" href="' + esc(sw.link) + '" target="_blank" onclick="trackDownload(\'' + esc(sw.name).replace(/'/g, "\\'") + '\')">⬇ Download</a>';
     } else {
       dlBtn = '<a class="download-btn disabled" href="#" onclick="return false;" aria-disabled="true">⬇ Download</a>';
     }
 
-    var chk = sw.link ? '<input type="checkbox" class="sw-check" data-id="' + esc(sw.id) + '" data-link="' + esc(sw.link) + '" onchange="updateBatchCount()">' : '';
+    var chk = sw.link ? '<input type="checkbox" class="sw-check" data-id="' + esc(sw.id) + '" data-name="' + esc(sw.name) + '" data-link="' + esc(sw.link) + '" onchange="updateBatchCount()">' : '';
 
     return [
       '<div class="sw-card" id="dl-' + esc(sw.id) + '">',
@@ -968,7 +968,7 @@ function renderPortal() {
     '    <span class="rollback-icon">🔄</span>',
     '    <span class="rollback-name" id="rollbackName">' + esc(rollbackLabel) + '</span>',
     '  </div>',
-    '  <a class="rollback-dl-btn" href="' + esc(d.rollbackLink || '') + '" target="_blank" id="rollbackDlBtn">',
+    '  <a class="rollback-dl-btn" href="' + esc(d.rollbackLink || '') + '" target="_blank" id="rollbackDlBtn" onclick="trackDownload(\'Rollback\')">',
     '    <span id="rollbackDlLabel">' + esc(t.rollbackDownload) + '</span>',
     '  </a>',
     '</div>'
@@ -1489,11 +1489,20 @@ function updateBatchCount() {
   if (master) master.checked = count === total && total > 0;
 }
 
+function trackDownload(swName) {
+  if (window.pywebview && window.pywebview.api && window.pywebview.api.track_download) {
+    window.pywebview.api.track_download(swName);
+  }
+}
+
 function batchDownload() {
   var checked = document.querySelectorAll('.sw-check:checked');
   if (checked.length === 0) return;
   var links = [];
-  for (var i = 0; i < checked.length; i++) links.push(checked[i].getAttribute('data-link'));
+  for (var i = 0; i < checked.length; i++) {
+    links.push(checked[i].getAttribute('data-link'));
+    trackDownload(checked[i].getAttribute('data-name'));
+  }
   var idx = 0;
   function openNext() {
     if (idx >= links.length) return;
