@@ -24,7 +24,7 @@ DATA_FILE = os.path.join(SCRIPT_DIR, "portal-data.json")
 HTML_FILE = os.path.join(SCRIPT_DIR, "portal.html")
 ANALYTICS_FILE = os.path.join(SCRIPT_DIR, "analytics.json")
 
-VALID_SITES = {"KYK", "KYA", "KYA-MX", "JKY", "KYSEA", "KYV", "KYE", "KYC", "KYTW", "AES"}
+VALID_SITES = {"KYK", "KYA", "KYA-MX", "JKY", "KYSEA", "KYV", "KYE", "KYC", "KYTW", "AES", "UNKNOWN"}
 VALID_ACTIONS = {"launch", "download"}
 
 
@@ -99,7 +99,7 @@ class PortalDataHandler(BaseHTTPRequestHandler):
             self._send_response(400, "text/plain", "Invalid JSON")
             return
 
-        site = event.get("site", "")
+        site = event.get("site", "") or "UNKNOWN"
         action = event.get("action", "")
         if site not in VALID_SITES or action not in VALID_ACTIONS:
             self._send_response(400, "application/json",
