@@ -54,6 +54,21 @@ DEFAULT_HTML = str(_SCRIPT_DIR / "index.html")
 
 
 # ─────────────────────────────────────────────────────────────────────────────
+#  Surrogate-safe string helpers
+# ─────────────────────────────────────────────────────────────────────────────
+
+def _clean_surrogates(obj):
+    """Remove surrogate characters that break utf-8 file writes."""
+    if isinstance(obj, str):
+        return obj.encode("utf-8", errors="replace").decode("utf-8")
+    if isinstance(obj, dict):
+        return {k: _clean_surrogates(v) for k, v in obj.items()}
+    if isinstance(obj, list):
+        return [_clean_surrogates(v) for v in obj]
+    return obj
+
+
+# ─────────────────────────────────────────────────────────────────────────────
 #  HTML ↔ Python dict helpers
 # ─────────────────────────────────────────────────────────────────────────────
 
@@ -258,7 +273,7 @@ def write_portal_data(html_path: str, html: str, data: dict) -> None:
     # end_idx+1 should be ';'
     semicolon_idx = end_idx + 1
 
-    data_for_html = {k: v for k, v in data.items() if k != "history"}
+    data_for_html = _clean_surrogates({k: v for k, v in data.items() if k != "history"})
     new_js = _dict_to_js_object(data_for_html)
     # Preserve original prefix (e.g. "var PORTAL_DATA = window.__PORTAL_DATA || ")
     prefix = html[start_idx:obj_start]
@@ -626,9 +641,11 @@ def deploy_to_github(data: dict) -> bool:
         print("  ❌ git이 설치되어 있지 않습니다.")
         return False
 
+    clean_data = _clean_surrogates(data)
+
     json_path = REPO_DIR / "portal-data.json"
     with open(json_path, "w", encoding="utf-8") as f:
-        json.dump(data, f, ensure_ascii=False, indent=2)
+        json.dump(clean_data, f, ensure_ascii=False, indent=2)
 
     index_path = REPO_DIR / "index.html"
     src_html = REPO_DIR / "Smart Review Version Portal.html"
@@ -732,7 +749,7 @@ def main() -> None:
     if args.export_json:
         json_path = os.path.join(os.path.dirname(html_path), "portal-data.json")
         with open(json_path, "w", encoding="utf-8") as f:
-            json.dump(data, f, ensure_ascii=False, indent=2)
+            json.dump(_clean_surrogates(data), f, ensure_ascii=False, indent=2)
         print(f"\n✅ portal-data.json 저장 완료: {json_path}")
         print(f"   소프트웨어 {len(data.get('software', []))}개 항목 포함")
         return
